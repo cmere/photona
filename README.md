@@ -1,2 +1,2 @@
 # photona
-local photo server
+Offline photo server.
