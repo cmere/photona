@@ -1,0 +1,153 @@
+#include "include/first.hpp"
+#include "FDSelector.hpp"
+#include "ISelectable.hpp"
+
+#include <sys/select.h>
+#include <unistd.h>
+
+using namespace std;
+
+namespace SocketServer 
+{
+
+void 
+FDSelector::addToReadSelectable(std::shared_ptr<ISelectable> pSocket)
+{
+  if (!pSocket || !pSocket->isValid()) {
+    return;
+  }
+  auto& found = readSelectableByFD_[pSocket->fd()];
+  if (found) {
+    logger << "add duplicate to read fd_set " << pSocket->fd() << endl;
+  }
+  else {
+    found = pSocket;
+  }
+}
+
+void 
+FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket) 
+{ 
+  if (!pSocket || !pSocket->isValid()) {
+    return;
+  }
+  auto& found = writeSelectableByFD_[pSocket->fd()];
+  if (found) {
+    logger << "add duplicate to write fd_set " << pSocket->fd() << endl;
+  }
+  else {
+    found = pSocket;
+  }
+}
+
+int
+setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
+           fd_set& fdset)
+{
+  FD_ZERO(&fdset);
+  int maxfd = 0;
+
+  for (auto& elm : pSelectableByFD) {
+    auto& pSocket = elm.second;
+    if (pSocket && pSocket->isValid()) {
+      FD_SET(pSocket->fd(), &fdset);
+      maxfd = max(maxfd, pSocket->fd());
+    }
+  }
+
+  return maxfd;
+}
+
+int 
+FDSelector::select(timeval* timeout) 
+{
+  fd_set readFDSet;
+  fd_set writeFDSet;
+  int maxfdRead = setupFDSet(readSelectableByFD_, readFDSet);
+  int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet);
+  int maxfd = max(maxfdRead, maxfdWrite);
+
+  int numSelectedFDs = 0;
+  while (1) {  // go back when received signal
+    // block wait
+    int retval = ::select(maxfd + 1, &readFDSet, &writeFDSet, nullptr, nullptr);
+    if (retval == -1) {
+      if (errno == EINTR) {  // received signal
+        logger << "socket select/poll signalled." << strerror(errno) << endl;
+        continue;
+      }
+      else {
+        logger << "socket select/poll error " << strerror(errno) << endl;
+        return -1;
+      }
+    }
+    numSelectedFDs = retval;
+    break;
+  }
+
+  readyToReadFDs_.clear();
+  readyToWriteFDs_.clear();
+
+  if (numSelectedFDs <= 0) {
+    logger << "socket nothing selected/polled." << endl;
+  }
+
+  int numSelectedReadSocket = 0;
+  // ready to read
+  for (auto& elm : readSelectableByFD_) {
+    int fd = elm.first;
+    if (FD_ISSET(fd, &readFDSet)) {
+      readyToReadFDs_.insert(fd);
+      numSelectedReadSocket++;
+    }
+  }
+  
+  int numSelectedWriteSocket = 0;
+  // ready to write
+  for (auto& elm : writeSelectableByFD_) {
+    int fd = elm.first;
+    if (FD_ISSET(fd, &writeFDSet)) {
+      readyToWriteFDs_.insert(fd);
+      numSelectedWriteSocket++;
+    }
+  }
+
+  if (numSelectedFDs != numSelectedReadSocket + numSelectedWriteSocket) {
+    logger << "select/poll FD number not match " << numSelectedFDs << " ?=? " << numSelectedReadSocket << " + " << numSelectedWriteSocket << endl;
+  }
+
+  return numSelectedFDs;
+}
+
+set<shared_ptr<ISelectable>> 
+FDSelector::getReadyToRead() const
+{
+  set<shared_ptr<ISelectable>> retval;
+  for (auto fd: readyToReadFDs_) {
+    auto found = readSelectableByFD_.find(fd);
+    if (found != readSelectableByFD_.end() && found->second) {
+      retval.insert(found->second);
+    }
+  }
+  return retval;
+}
+
+
+set<shared_ptr<ISelectable>> 
+FDSelector::getReadyToWrite() const
+{
+  set<shared_ptr<ISelectable>> retval;
+  for (auto fd: readyToReadFDs_) {
+    auto found = writeSelectableByFD_.find(fd);
+    if (found != writeSelectableByFD_.end() && found->second) {
+      retval.insert(found->second);
+    }
+  }
+  return retval;
+}
+
+
+//void addToExceptSelectable(shared_ptr<ISelectable> sock) { }
+//std::set<shared_ptr<ISelectable>> getReadyToExcept() const;
+
+}
