@@ -1,6 +1,8 @@
 #include "include/first.hpp"
 #include "FDSelector.hpp"
 #include "ISelectable.hpp"
+#include "MessageBuffer.hpp"
+#include "TCPSocket.hpp"
 
 #include <sys/select.h>
 #include <unistd.h>
@@ -42,16 +44,23 @@ FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket)
 
 int
 setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
-           fd_set& fdset)
+           fd_set& fdset, bool isWriteSelectable)
 {
   FD_ZERO(&fdset);
   int maxfd = 0;
 
   for (auto& elm : pSelectableByFD) {
-    auto& pSocket = elm.second;
-    if (pSocket && pSocket->isValid()) {
-      FD_SET(pSocket->fd(), &fdset);
-      maxfd = max(maxfd, pSocket->fd());
+    auto& pSelectable = elm.second;
+    if (pSelectable && pSelectable->isValid()) {
+      if (!isWriteSelectable) { // readSelectable
+        FD_SET(pSelectable->fd(), &fdset);
+      }
+      else if (auto* pSocket = dynamic_cast<TCPSocket*>(pSelectable.get())) {
+        if (MessageBuffer::Singleton().hasMessageToSend(pSocket->getPeerPair())) {
+          FD_SET(pSocket->fd(), &fdset);
+        }
+      }
+      maxfd = max(maxfd, pSelectable->fd());
     }
   }
 
@@ -63,8 +72,8 @@ FDSelector::select(timeval* timeout)
 {
   fd_set readFDSet;
   fd_set writeFDSet;
-  int maxfdRead = setupFDSet(readSelectableByFD_, readFDSet);
-  int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet);
+  int maxfdRead = setupFDSet(readSelectableByFD_, readFDSet, false);
+  int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet, true);
   int maxfd = max(maxfdRead, maxfdWrite);
 
   int numSelectedFDs = 0;

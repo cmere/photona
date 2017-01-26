@@ -13,4 +13,4 @@ file(GLOB SocketServer_SOURCE
 
 add_executable (photona ${SocketServer_SOURCE})
 
-add_executable (socketserver_test SocketServer_test/main.cpp SocketServer/TCPSocket.cpp)
+add_executable (socketserver_test SocketServer_test/main.cpp SocketServer/TCPSocket.cpp SocketServer/TCPSocketBase.cpp SocketServer/MessageBuffer.cpp SocketServer/MessageBase.cpp SocketServer/FDSelector.cpp)

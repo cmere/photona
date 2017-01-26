@@ -2,6 +2,7 @@
 #include "FDSelector.hpp"
 #include "ListenerSocketServer.hpp"
 #include "ListenerTCPSocket.hpp"
+#include "TCPSocket.hpp"
 #include "WorkerSocketServer.hpp"
 
 #include <cstring>
