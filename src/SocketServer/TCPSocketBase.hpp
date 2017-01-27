@@ -21,7 +21,7 @@ class TCPSocketBase : public ISelectable
 
     int fd() const { return fd_; }
     bool isValid() const { return fd_ > 0; }
-    void close();
+    virtual void close();
 
     const std::string& getPeerIPAddress() const { return peerIPAddress_; }
     const unsigned int getPeerPort() const { return peerPort_; }

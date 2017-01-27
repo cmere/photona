@@ -111,7 +111,7 @@ ListenerSocketServer::run()
       return false;
     }
 
-    if (!pListenerTCPSocket_->handleSelectReadable()) {
+    if (pListenerTCPSocket_->handleSelectReadable() < 0) {
       logger << "failed to handle read FD in select. fd=" << pListenerTCPSocket_->fd() << endl;
       return false;
     }

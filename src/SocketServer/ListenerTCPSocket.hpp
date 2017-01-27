@@ -18,8 +18,10 @@ class ListenerTCPSocket : public TCPSocketBase
     static std::string ANY_IPADDRESS;
     static unsigned int RANDOM_PORT;
 
-    virtual bool handleSelectReadable();
-    virtual bool handleSelectWritable();
+    ListenerTCPSocket();
+
+    virtual int handleSelectReadable();
+    virtual int handleSelectWritable();
 
     bool bindAndListen(const std::string& localIPAddress, unsigned int localPort);
 

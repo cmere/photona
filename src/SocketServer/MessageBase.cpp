@@ -12,4 +12,10 @@ MessageBase::toBytes() const
   return make_pair(unique_ptr<char>(), 0);
 }
 
+ostream& operator<<(ostream& os, const MessageBase& msg)
+{
+  os << " MessageBase " << endl;
+  return os;
+}
+
 }

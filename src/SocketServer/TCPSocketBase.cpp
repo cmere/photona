@@ -19,7 +19,18 @@ TCPSocketBase::TCPSocketBase()
   if (fd_ == -1) {
     logger << "create socket failed [" << strerror(errno) << "]" << endl;
   }
-  logger << "create fd=" << fd_ << endl;
+  logger << "socket created fd=" << fd_ << endl;
+
+  /*
+  int flag = ::fcntl(fd_, F_GETFD);
+  if (flag == -1) {
+    logger << "try to set socket NONBLOCK failed. fd=" << fd_ << " " << strerror(errno) << endl;
+  }
+  flag |= O_NONBLOCK;
+  if (::fcntl(fd_, F_SETFD, flag) == -1) {
+    logger << "set socket NONBLOCK failed. fd=" << fd_ << " " << strerror(errno) << endl;
+  }
+  */
 }
 
 TCPSocketBase::TCPSocketBase(int fd, const string& peerIPAddress, unsigned int peerPort)

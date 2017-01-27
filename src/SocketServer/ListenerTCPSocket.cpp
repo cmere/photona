@@ -12,7 +12,15 @@ namespace SocketServer
 std::string ListenerTCPSocket::ANY_IPADDRESS = "*";
 unsigned int ListenerTCPSocket::RANDOM_PORT = 0;
 
-bool
+ListenerTCPSocket::ListenerTCPSocket()
+{
+  int val = 1;
+  if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val) == -1)) {
+    logger << "socket option failed fd=" << fd_ << " " << strerror(errno) << endl;
+  }
+}
+
+int
 ListenerTCPSocket::handleSelectReadable() 
 {
   sockaddr_in peerIPSockAddr;
@@ -20,26 +28,26 @@ ListenerTCPSocket::handleSelectReadable()
   int fdPeerSocket = ::accept4(fd_, (sockaddr*)&peerIPSockAddr, &peerIPSockAddrLength, SOCK_NONBLOCK | SOCK_CLOEXEC);
   if (fdPeerSocket == -1) {
     logger << "socket accept error: " << strerror(errno) << endl;
-    return false;
+    return -1;
   }
 
   string peerIPAddress = toIPString_(peerIPSockAddr);
   unsigned int peerPort = ntohs(peerIPSockAddr.sin_port);
   if (peerIPAddress.empty() || peerPort < 0) {
     logger << "accepted an unknown client [" << peerIPAddress << ":" << peerPort << "]" << endl;
-    return false;
+    return -1;
   }
 
   pAcceptedClientSocket_.reset(new TCPSocket(fdPeerSocket, peerIPAddress, peerPort));
   logger << "new client fd=" << fdPeerSocket << " " << peerIPAddress << ":" << peerPort << endl;
   
-  return true;
+  return 1;
 }
 
-bool
+int
 ListenerTCPSocket::handleSelectWritable() 
 { 
-  return false;
+  return 1;
 }
 
 bool

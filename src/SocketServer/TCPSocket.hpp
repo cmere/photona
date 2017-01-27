@@ -22,9 +22,10 @@ class TCPSocket : public TCPSocketBase
     { }
 
     virtual ~TCPSocket() { }
+    virtual void close();
 
-    virtual bool handleSelectReadable();
-    virtual bool handleSelectWritable();
+    virtual int handleSelectReadable();
+    virtual int handleSelectWritable();
 
     bool connectTo(const std::string& serverIPAddress, unsigned int serverPort);
 

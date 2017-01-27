@@ -7,10 +7,12 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 add_compile_options(-std=c++11 -Wall -Werror)
 
-file(GLOB SocketServer_SOURCE
-  "SocketServer/*.cpp"
-)
+file(GLOB SocketServer_Lib_Source "SocketServer/*.cpp")
+list(REMOVE_ITEM SocketServer_Lib_Source "SocketServer/main.cpp")
 
-add_executable (photona ${SocketServer_SOURCE})
+add_library(libsocketserver STATIC ${SocketServer_Lib_Source})
+add_executable (socketserver SocketServer/main.cpp)
+target_link_libraries(socketserver libsocketserver)
 
-add_executable (socketserver_test SocketServer_test/main.cpp SocketServer/TCPSocket.cpp SocketServer/TCPSocketBase.cpp SocketServer/MessageBuffer.cpp SocketServer/MessageBase.cpp SocketServer/FDSelector.cpp)
+add_executable (socketserver_test SocketServer_test/main.cpp)
+target_link_libraries(socketserver_test libsocketserver)

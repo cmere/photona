@@ -16,13 +16,21 @@ const unsigned int TCPReadBufferSize = 8096;
 namespace SocketServer
 {
 
-bool 
+void 
+TCPSocket::close()
+{
+  MessageBuffer::Singleton().removeSocketMessages(getPeerPair());
+  TCPSocketBase::close();
+}
+
+int
 TCPSocket::handleSelectReadable()
 {
   unique_ptr<char> bytes(new char[TCPReadBufferSize]);
   unsigned int bufferSize = TCPReadBufferSize;
+  int numBytesRead = 0;
 
-  while (MessageBuffer::Singleton().needReadMore(getPeerPair())) {
+  if (MessageBuffer::Singleton().needReadMore(getPeerPair())) {
     // copy left-over from last read().
     if (numBytesNotExtracted_ > 0) {
       if (numBytesNotExtracted_ * 2 >= TCPReadBufferSize) {  // for a large message, increase bytes[] buffer.
@@ -36,14 +44,16 @@ TCPSocket::handleSelectReadable()
       pBytesNotExtracted_.reset();
     }
 
-    ssize_t numBytesRead = ::read(fd_, bytes.get() + numBytesNotExtracted_, bufferSize - numBytesNotExtracted_);
+    numBytesRead = ::read(fd_, bytes.get() + numBytesNotExtracted_, bufferSize - numBytesNotExtracted_);
     if (numBytesRead == -1) {
       logger << "socket read error fd=" << fd_ << " " << strerror(errno) << endl;
       close();
-      return false;
+      return -1;
     }
     else if (numBytesRead == 0) {  // eof
-      return true;
+      logger << "close socket fd=" << fd_ << endl;
+      close();
+      return 0;
     }
 
     char* pMessageBoundary = bytes.get();
@@ -75,71 +85,73 @@ TCPSocket::handleSelectReadable()
     }
   }
 
-  return true;
+  return numBytesRead;
 }
 
-bool 
+int
 TCPSocket::handleSelectWritable()
 {
   // send as many bytes as possible. If receiver side is choked, select() won't set writable on this socket.
 
   // send left-over from last send().
   char* pCurrent = pBytesNotSend_.get();
-  while (numBytesNotSend_ > 0) {
+  if (numBytesNotSend_ > 0) {
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytesNotSend_);
     if (numBytesSent == -1) {
       logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endl;
-      return false;
+      return -1;
     }
-    else if (numBytesSent == 0) { // nothing was written (system TCP write buffer is full).
-      if (numBytesNotSend_ > 0) {
-        pBytesNotSend_.reset(new char[numBytesNotSend_]);
-        ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
-      }
-      return true;
+    else if (numBytesSent == 0) { // nothing was written, shouldn't happen
+      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endl;
     }
     else {
       numBytesNotSend_ -= numBytesSent;
       pCurrent += numBytesSent;
     }
+    if (numBytesNotSend_ > 0) {
+      pBytesNotSend_.reset(new char[numBytesNotSend_]);
+      ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
+    }
+
+    return numBytesSent;
   }
 
-  if (numBytesNotSend_ == 0) {
-    pBytesNotSend_.reset();
-  }
-  else {
-    logger << "ERROR: should all be written." << endl;
-    return false;
-  }
+  // numBytesNotSend_ == 0
+  pBytesNotSend_.reset();
 
-  while (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
+  if (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
     shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessage(getPeerPair());
     pair<unique_ptr<char>, unsigned int> bytes_length = msg->toBytes();
 
     char* pCurrent = bytes_length.first.get();
     unsigned int numBytes = bytes_length.second;
 
-    while (numBytes > 0) {
-      ssize_t numBytesSent = ::write(fd_, pCurrent, numBytes);
-      if (numBytesSent == -1) {
-        logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endl;
-        return false;
-      }
-      else if (numBytesSent == 0) { // nothing was written (system TCP write buffer is full).
-        if (numBytes > 0) {
-          pBytesNotSend_.reset(new char[numBytes]);
-          ::memcpy(pBytesNotSend_.get(), pCurrent, numBytes);
-        }
-        return true;
-      }
-      else {
-        numBytes -= numBytesSent;
-        pCurrent += numBytesSent;
-      }
+    if (numBytes <= 0) {
+      logger << "failed to get bytes from message fd=" << fd_ << " " << *msg << endl;
+      return 0;
     }
+
+    ssize_t numBytesSent = ::write(fd_, pCurrent, numBytes);
+    if (numBytesSent == -1) {
+      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endl;
+      return -1;
+    }
+    else if (numBytesSent == 0) { // shouldn't happen
+      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endl;
+    }
+    else {
+      numBytes -= numBytesSent;
+      pCurrent += numBytesSent;
+    }
+
+    if (numBytes > 0) {
+      pBytesNotSend_.reset(new char[numBytes]);
+      ::memcpy(pBytesNotSend_.get(), pCurrent, numBytes);
+    }
+    return numBytesSent;
   }
 
-  return true;
+  return 0;
 }
 
 bool

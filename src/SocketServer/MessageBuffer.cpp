@@ -17,13 +17,13 @@ MessageBuffer::MessageBuffer()
 { }
 
 bool
-MessageBuffer::hasMessageToSend(MessageBase::To to) const
+MessageBuffer::hasMessageToSend(const MessageBase::PeerID& to) const
 {
   return outMsgByDest_.count(to) > 0;
 }
 
 shared_ptr<MessageBase> 
-MessageBuffer::popMessage(MessageBase::To)
+MessageBuffer::popMessage(const MessageBase::PeerID& to)
 {
   return shared_ptr<MessageBase>();
 }
@@ -35,9 +35,15 @@ MessageBuffer::extractMessageFromBytes(const char*, unsigned int length)
 }
 
 bool 
-MessageBuffer::needReadMore(const MessageBase::From& src) const
+MessageBuffer::needReadMore(const MessageBase::PeerID& src) const
 {
   return true;
+}
+
+unsigned int
+MessageBuffer::removeSocketMessages(const MessageBase::PeerID&)
+{
+  return 0;
 }
 
 }
