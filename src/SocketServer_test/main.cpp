@@ -7,6 +7,8 @@
 
 #include "include/first.hpp"
 #include "SocketServer/TCPSocket.hpp"
+#include "SocketServer/MessageBuffer.hpp"
+#include "SocketServer/MessageTest.hpp"
 
 using namespace std;
 using namespace SocketServer;
@@ -29,7 +31,14 @@ int main(int argc, char *argv[])
   }
 
   cout << "fd=" << tcpSocket.fd() << " connected to " << serverIPAddress << ":" << serverPort << endl;
-  ::sleep(1);
+
+  string line;
+  while (getline(cin, line)) {
+    auto pMsg = make_shared<MessageTest>(tcpSocket.getLocalPair(), tcpSocket.getPeerPair());
+    pMsg->setBody(line);
+    MessageBuffer::Singleton().queueMessageToSend(pMsg);
+    cout << "sent " << tcpSocket.handleSelectWritable() << " bytes." << endl;
+  }
 
   return EXIT_SUCCESS;
 }

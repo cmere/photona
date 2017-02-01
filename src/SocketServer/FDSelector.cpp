@@ -56,7 +56,7 @@ setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
         FD_SET(pSelectable->fd(), &fdset);
       }
       else if (auto* pSocket = dynamic_cast<TCPSocket*>(pSelectable.get())) {
-        if (MessageBuffer::Singleton().hasMessageToSend(pSocket->getPeerPair())) {
+        if (pSocket->hasBytesToSend()) {
           FD_SET(pSocket->fd(), &fdset);
         }
       }
@@ -75,6 +75,10 @@ FDSelector::select(timeval* timeout)
   int maxfdRead = setupFDSet(readSelectableByFD_, readFDSet, false);
   int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet, true);
   int maxfd = max(maxfdRead, maxfdWrite);
+  if (maxfd == 0) {
+    logger << "no more socket to select/pull." << endl;
+    return 0;
+  }
 
   int numSelectedFDs = 0;
   while (1) {  // go back when received signal

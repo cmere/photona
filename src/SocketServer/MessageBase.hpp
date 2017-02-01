@@ -17,7 +17,16 @@ class MessageBase
   public:
     using PeerID = std::string;
 
-    std::pair<std::unique_ptr<char>, unsigned int> toBytes() const;
+    MessageBase(const PeerID& src, const PeerID& dest) 
+      : src_(src), dest_(dest) { }
+    virtual ~MessageBase() { }
+
+    virtual std::pair<std::unique_ptr<char>, unsigned int> toBytes() const = 0;
+    const PeerID& getSource() const { return src_; }
+    const PeerID& getDest() const { return dest_; }
+
+  protected:
+    std::string toString_() const { return src_ + " " + dest_; }
 
   private:
     PeerID src_; 

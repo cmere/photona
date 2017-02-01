@@ -27,6 +27,8 @@ class TCPSocket : public TCPSocketBase
     virtual int handleSelectReadable();
     virtual int handleSelectWritable();
 
+    bool hasBytesToSend() const;
+
     bool connectTo(const std::string& serverIPAddress, unsigned int serverPort);
 
   private:

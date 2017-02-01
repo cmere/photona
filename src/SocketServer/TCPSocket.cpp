@@ -30,7 +30,7 @@ TCPSocket::handleSelectReadable()
   unsigned int bufferSize = TCPReadBufferSize;
   int numBytesRead = 0;
 
-  if (MessageBuffer::Singleton().needReadMore(getPeerPair())) {
+  if (MessageBuffer::Singleton().canReadMore(getPeerPair())) {
     // copy left-over from last read().
     if (numBytesNotExtracted_ > 0) {
       if (numBytesNotExtracted_ * 2 >= TCPReadBufferSize) {  // for a large message, increase bytes[] buffer.
@@ -59,7 +59,7 @@ TCPSocket::handleSelectReadable()
     char* pMessageBoundary = bytes.get();
     unsigned int numBytes = numBytesNotExtracted_ + (unsigned int)numBytesRead;
 
-    while (MessageBuffer::Singleton().needReadMore(getPeerPair())) {
+    while (MessageBuffer::Singleton().canReadMore(getPeerPair())) {
       unsigned int numBytesExtracted = MessageBuffer::Singleton().extractMessageFromBytes(pMessageBoundary, numBytes);
       if (numBytesExtracted == 0 ) {  // no more WHOLE message.
         numBytesNotExtracted_ = numBytes;
@@ -120,7 +120,7 @@ TCPSocket::handleSelectWritable()
   pBytesNotSend_.reset();
 
   if (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
-    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessage(getPeerPair());
+    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(getPeerPair());
     pair<unique_ptr<char>, unsigned int> bytes_length = msg->toBytes();
 
     char* pCurrent = bytes_length.first.get();
@@ -145,8 +145,9 @@ TCPSocket::handleSelectWritable()
     }
 
     if (numBytes > 0) {
-      pBytesNotSend_.reset(new char[numBytes]);
-      ::memcpy(pBytesNotSend_.get(), pCurrent, numBytes);
+      numBytesNotSend_ = numBytes;
+      pBytesNotSend_.reset(new char[numBytesNotSend_]);
+      ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
     }
     return numBytesSent;
   }
@@ -184,6 +185,19 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
   localPort_ = ntohs(localSockAddr.sin_port);
 
   return true;
+}
+
+bool
+TCPSocket::hasBytesToSend() const
+{
+  if (pBytesNotSend_ && numBytesNotSend_ > 0) {
+    return true;
+  }
+  if (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
+    return true;
+  }
+
+  return false;
 }
 
 }

@@ -23,12 +23,12 @@ class MessageBuffer
     // extract ONE message, put in queue, return number of bytes extracted.
     unsigned int extractMessageFromBytes(const char*, unsigned int length);
 
-    bool needReadMore(const MessageBase::PeerID&) const;
+    bool canReadMore(const MessageBase::PeerID&) const;
 
     bool hasMessageToSend(const MessageBase::PeerID&) const;
-    std::shared_ptr<MessageBase> popMessage(const MessageBase::PeerID&);
+    bool queueMessageToSend(const std::shared_ptr<MessageBase>&);
+    std::shared_ptr<MessageBase> popMessageToSend(const MessageBase::PeerID&);
 
-    bool queueMessageToSend(const std::shared_ptr<MessageBase>);
     unsigned int removeSocketMessages(const MessageBase::PeerID&);
 
   private:
@@ -41,9 +41,8 @@ class MessageBuffer
     MessageQueueType queueIn_;
     MessageQueueType queueOut_;
 
-    std::map<MessageBase::PeerID, MessageQueueType::iterator> inMsgBySrc_;
-    std::map<MessageBase::PeerID, MessageQueueType::iterator> outMsgByDest_;
-
+    std::map<MessageBase::PeerID, std::list<MessageQueueType::iterator>> inMsgBySrc_;
+    std::map<MessageBase::PeerID, std::list<MessageQueueType::iterator>> outMsgByDest_;
 };
 
 }

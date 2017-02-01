@@ -12,12 +12,12 @@ class TCPSocket;
 class WorkerSocketServer
 {
   public:
-    WorkerSocketServer(TCPSocket& socket);
+    WorkerSocketServer(std::shared_ptr<TCPSocket>);
 
     bool run();
 
   private:
-    TCPSocket& tcpSocket_;
+    std::shared_ptr<TCPSocket> pTcpSocket_;
 };
 
 }

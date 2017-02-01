@@ -116,7 +116,7 @@ ListenerSocketServer::run()
       return false;
     }
 
-    unique_ptr<TCPSocket> pClientSocket = pListenerTCPSocket_->getAcceptedClient();
+    shared_ptr<TCPSocket> pClientSocket = move(pListenerTCPSocket_->getAcceptedClient());
     if (!pClientSocket) {
       logger << "faled to accept client socket. exit." << endl;
       return false;
@@ -124,7 +124,7 @@ ListenerSocketServer::run()
 
     if (numOfChildProcess >= MaxNumOfWorkerServer) {
       logger << "ignore client " << pClientSocket->getPeerPair() 
-             << " due to too many clients to serve " << numOfChildProcess << " limit=" << MaxNumOfWorkerServer << endl;
+             << " due to too many connected clients " << numOfChildProcess << " limit=" << MaxNumOfWorkerServer << endl;
       pClientSocket->close();
       continue;
     }
@@ -139,7 +139,7 @@ ListenerSocketServer::run()
     else if (childPID == 0) {  // child process
       pListenerTCPSocket_->close();
       logger << "child process started to server client " << pClientSocket->getPeerPair() << endl;
-      WorkerSocketServer workerServer(*pClientSocket);
+      WorkerSocketServer workerServer(pClientSocket);
       workerServer.run();
       logger << "child process is done to server client " << pClientSocket->getPeerPair() << endl;
       break;
