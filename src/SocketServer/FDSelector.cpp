@@ -20,7 +20,7 @@ FDSelector::addToReadSelectable(std::shared_ptr<ISelectable> pSocket)
   }
   auto& found = readSelectableByFD_[pSocket->fd()];
   if (found) {
-    logger << "add duplicate to read fd_set " << pSocket->fd() << endl;
+    logger << "add duplicate to read fd_set " << pSocket->fd() << endlog;
   }
   else {
     found = pSocket;
@@ -35,7 +35,7 @@ FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket)
   }
   auto& found = writeSelectableByFD_[pSocket->fd()];
   if (found) {
-    logger << "add duplicate to write fd_set " << pSocket->fd() << endl;
+    logger << "add duplicate to write fd_set " << pSocket->fd() << endlog;
   }
   else {
     found = pSocket;
@@ -76,7 +76,7 @@ FDSelector::select(timeval* timeout)
   int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet, true);
   int maxfd = max(maxfdRead, maxfdWrite);
   if (maxfd == 0) {
-    logger << "no more socket to select/pull." << endl;
+    logger << "no more socket to select/pull." << endlog;
     return 0;
   }
 
@@ -86,11 +86,11 @@ FDSelector::select(timeval* timeout)
     int retval = ::select(maxfd + 1, &readFDSet, &writeFDSet, nullptr, nullptr);
     if (retval == -1) {
       if (errno == EINTR) {  // received signal
-        logger << "socket select/poll signalled." << strerror(errno) << endl;
+        logger << "socket select/poll signalled." << strerror(errno) << endlog;
         continue;
       }
       else {
-        logger << "socket select/poll error " << strerror(errno) << endl;
+        logger << "socket select/poll error " << strerror(errno) << endlog;
         return -1;
       }
     }
@@ -102,7 +102,7 @@ FDSelector::select(timeval* timeout)
   readyToWriteFDs_.clear();
 
   if (numSelectedFDs <= 0) {
-    logger << "socket nothing selected/polled." << endl;
+    logger << "socket nothing selected/polled." << endlog;
   }
 
   int numSelectedReadSocket = 0;
@@ -126,7 +126,7 @@ FDSelector::select(timeval* timeout)
   }
 
   if (numSelectedFDs != numSelectedReadSocket + numSelectedWriteSocket) {
-    logger << "select/poll FD number not match " << numSelectedFDs << " ?=? " << numSelectedReadSocket << " + " << numSelectedWriteSocket << endl;
+    logger << "select/poll FD number not match " << numSelectedFDs << " ?=? " << numSelectedReadSocket << " + " << numSelectedWriteSocket << endlog;
   }
 
   return numSelectedFDs;

@@ -3,8 +3,8 @@
 
 #include <cerrno>
 #include <cstring>
-#include <iostream>
-
-#define logger std::cout
+#include <sys/types.h>
+#include <unistd.h>
+#include "SocketServer/Logger.hpp"
 
 #endif

@@ -55,7 +55,7 @@ MessageBuffer::popMessageToSend(const MessageBase::PeerID& to)
 unsigned int
 MessageBuffer::extractMessageFromBytes(const char* bytes, unsigned int length)
 {
-  cout << "extract " << length << " bytes: " << string(bytes, length) << endl;
+  logger << "extract " << length << " bytes: " << string(bytes, length) << endlog;
   return length;
 }
 

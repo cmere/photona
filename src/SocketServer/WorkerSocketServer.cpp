@@ -24,11 +24,11 @@ WorkerSocketServer::run()
   while (1) {
     int retval = selector.select();
     if (retval < 0) {
-      logger << "socket select errror. exit." << endl;
+      logger << "socket select errror. exit." << endlog;
       return false;
     }
     else if (retval == 0) {
-      logger << "worker socket server exit." << endl;
+      logger << "worker socket server exit." << endlog;
       return true;
     }
 

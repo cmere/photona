@@ -46,12 +46,12 @@ TCPSocket::handleSelectReadable()
 
     numBytesRead = ::read(fd_, bytes.get() + numBytesNotExtracted_, bufferSize - numBytesNotExtracted_);
     if (numBytesRead == -1) {
-      logger << "socket read error fd=" << fd_ << " " << strerror(errno) << endl;
+      logger << "socket read error fd=" << fd_ << " " << strerror(errno) << endlog;
       close();
       return -1;
     }
     else if (numBytesRead == 0) {  // eof
-      logger << "close socket fd=" << fd_ << endl;
+      logger << "socket EOF fd=" << fd_ << endlog;
       close();
       return 0;
     }
@@ -98,11 +98,11 @@ TCPSocket::handleSelectWritable()
   if (numBytesNotSend_ > 0) {
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytesNotSend_);
     if (numBytesSent == -1) {
-      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endl;
+      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endlog;
       return -1;
     }
     else if (numBytesSent == 0) { // nothing was written, shouldn't happen
-      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endl;
+      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endlog;
     }
     else {
       numBytesNotSend_ -= numBytesSent;
@@ -127,17 +127,17 @@ TCPSocket::handleSelectWritable()
     unsigned int numBytes = bytes_length.second;
 
     if (numBytes <= 0) {
-      logger << "failed to get bytes from message fd=" << fd_ << " " << *msg << endl;
+      logger << "failed to get bytes from message fd=" << fd_ << " " << *msg << endlog;
       return 0;
     }
 
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytes);
     if (numBytesSent == -1) {
-      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endl;
+      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endlog;
       return -1;
     }
     else if (numBytesSent == 0) { // shouldn't happen
-      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endl;
+      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endlog;
     }
     else {
       numBytes -= numBytesSent;
@@ -165,7 +165,7 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
   inet_pton(AF_INET, serverIPAddress.c_str(), &peerSockAddr.sin_addr.s_addr);
 
   if (::connect(fd_, (const sockaddr*)&peerSockAddr, peerSockAddrLength) == -1) {
-    cout << "socket connect failed: fd=" << fd_ << " " << strerror(errno) << endl;
+    logger << "socket connect failed: fd=" << fd_ << " " << strerror(errno) << endlog;
     return false;
   }
   
@@ -176,7 +176,7 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
   sockaddr_in localSockAddr;
   socklen_t localSockAddrLength = sizeof(localSockAddr);
   if (::getsockname(fd_, (sockaddr*)&localSockAddr, &localSockAddrLength) == -1) {
-    logger << "socket address failed fd=" << fd_ << " " << strerror(errno) << endl;
+    logger << "socket address failed fd=" << fd_ << " " << strerror(errno) << endlog;
     close();
     return false;
   }

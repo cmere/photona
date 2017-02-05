@@ -8,7 +8,7 @@ namespace SocketServer
 
 ostream& operator<<(ostream& os, const MessageBase& msg)
 {
-  os << " MessageBase " << endl;
+  os << " MessageBase " << endlog;
   return os;
 }
 

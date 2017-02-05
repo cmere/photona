@@ -16,7 +16,7 @@ ListenerTCPSocket::ListenerTCPSocket()
 {
   int val = 1;
   if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val) == -1)) {
-    logger << "socket option failed fd=" << fd_ << " " << strerror(errno) << endl;
+    logger << "socket option failed fd=" << fd_ << " " << strerror(errno) << endlog;
   }
 }
 
@@ -27,19 +27,19 @@ ListenerTCPSocket::handleSelectReadable()
   socklen_t peerIPSockAddrLength = sizeof(peerIPSockAddr);
   int fdPeerSocket = ::accept4(fd_, (sockaddr*)&peerIPSockAddr, &peerIPSockAddrLength, SOCK_NONBLOCK | SOCK_CLOEXEC);
   if (fdPeerSocket == -1) {
-    logger << "socket accept error: " << strerror(errno) << endl;
+    logger << "socket accept error: " << strerror(errno) << endlog;
     return -1;
   }
 
   string peerIPAddress = toIPString_(peerIPSockAddr);
   unsigned int peerPort = ntohs(peerIPSockAddr.sin_port);
   if (peerIPAddress.empty() || peerPort < 0) {
-    logger << "accepted an unknown client [" << peerIPAddress << ":" << peerPort << "]" << endl;
+    logger << "accepted an unknown client [" << peerIPAddress << ":" << peerPort << "]" << endlog;
     return -1;
   }
 
   pAcceptedClientSocket_.reset(new TCPSocket(fdPeerSocket, peerIPAddress, peerPort));
-  logger << "new client fd=" << fdPeerSocket << " " << peerIPAddress << ":" << peerPort << endl;
+  logger << "new client fd=" << fdPeerSocket << " " << peerIPAddress << ":" << peerPort << endlog;
   
   return 1;
 }
@@ -64,19 +64,19 @@ ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int
     // convert string format, e.g. "192.168.1.100", to network format.
     int retval = inet_pton(AF_INET, localIPAddress.c_str(), &localSockAddr.sin_addr.s_addr);
     if (retval == 0) {
-      logger << "invalid ip address: " << localIPAddress << endl;
+      logger << "invalid ip address: " << localIPAddress << endlog;
       close();
       return false;
     }
     else if (retval == -1) {  // not support AF_INET
-      logger << "invalid address family: " << strerror(errno) << endl;
+      logger << "invalid address family: " << strerror(errno) << endlog;
       close();
       return false;
     }
   }
   
   if (::bind(fd_, (const sockaddr*)&localSockAddr, sizeof(localSockAddr)) == -1) {
-    logger << "socket bind failed fd=" << fd_ << " " << localIPAddress << ":" << localPort << " " << strerror(errno) << endl;
+    logger << "socket bind failed fd=" << fd_ << " " << localIPAddress << ":" << localPort << " " << strerror(errno) << endlog;
     close();
     return false;
   }
@@ -84,7 +84,7 @@ ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int
   // get local ip address and port in case bind to a kernel chosen ephemeral port.
   socklen_t localSockAddrLength = sizeof(localSockAddr);
   if (::getsockname(fd_, (sockaddr*)&localSockAddr, &localSockAddrLength) == -1) {
-    logger << "socket address failed fd=" << fd_ << " " << strerror(errno) << endl;
+    logger << "socket address failed fd=" << fd_ << " " << strerror(errno) << endlog;
     close();
     return false;
   }
@@ -96,7 +96,7 @@ ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int
   if (localIPAddress != ANY_IPADDRESS) {
     string ipAddress = toIPString_(localSockAddr);
     if (ipAddress.empty() || ipAddress != localIPAddress) {  // double check
-      logger << "after bind, server IP address is failed [" << ipAddress << "]" << endl;
+      logger << "after bind, server IP address is failed [" << ipAddress << "]" << endlog;
       close();
       return false;
     }
@@ -108,7 +108,7 @@ ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int
 
 
   if (::listen(fd_, 10) == -1) {  // backlog = 10
-    logger << "socket failed to listen on fd=" << fd_ << endl;
+    logger << "socket failed to listen on fd=" << fd_ << endlog;
     close();
     return false;
   }
