@@ -14,8 +14,8 @@ unsigned int ListenerTCPSocket::RANDOM_PORT = 0;
 
 ListenerTCPSocket::ListenerTCPSocket()
 {
-  int val = 1;
-  if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val) == -1)) {
+  const int on = 1;
+  if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
     logger << "socket option failed fd=" << fd_ << " " << strerror(errno) << endlog;
   }
 }
