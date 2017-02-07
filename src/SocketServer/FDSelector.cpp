@@ -111,7 +111,7 @@ FDSelector::select(timeval* timeout)
     int fd = elm.first;
     if (FD_ISSET(fd, &readFDSet)) {
       readyToReadFDs_.insert(fd);
-      numSelectedReadSocket++;
+      ++numSelectedReadSocket;
     }
   }
   
@@ -121,7 +121,7 @@ FDSelector::select(timeval* timeout)
     int fd = elm.first;
     if (FD_ISSET(fd, &writeFDSet)) {
       readyToWriteFDs_.insert(fd);
-      numSelectedWriteSocket++;
+      ++numSelectedWriteSocket;
     }
   }
 
@@ -150,7 +150,7 @@ set<shared_ptr<ISelectable>>
 FDSelector::getReadyToWrite() const
 {
   set<shared_ptr<ISelectable>> retval;
-  for (auto fd: readyToReadFDs_) {
+  for (auto fd: readyToWriteFDs_) {
     auto found = writeSelectableByFD_.find(fd);
     if (found != writeSelectableByFD_.end() && found->second) {
       retval.insert(found->second);
