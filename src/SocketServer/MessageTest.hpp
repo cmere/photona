@@ -11,7 +11,7 @@ class MessageTest : public MessageBase
   public:
     using PeerID = std::string;
 
-    MessageTest(const PeerID& src, const PeerID& dest) : MessageBase(src, dest) { }
+    MessageTest(const ClientID& clientID) : MessageBase(clientID) { }
 
     void setBody(const std::string& body) { body_ = body; }
 
