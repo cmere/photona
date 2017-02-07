@@ -15,25 +15,23 @@ namespace SocketServer
 class MessageBase
 {
   public:
-    using PeerID = std::string;
+    using ClientID = std::string;
 
-    MessageBase(const PeerID& src, const PeerID& dest) 
-      : src_(src), dest_(dest) { }
+    MessageBase(const ClientID& clientID) 
+      : clientID_(clientID) { }
     virtual ~MessageBase() { }
 
     virtual std::pair<std::unique_ptr<char>, unsigned int> toBytes() const = 0;
-    const PeerID& getSource() const { return src_; }
-    const PeerID& getDest() const { return dest_; }
+    const ClientID& getClientID() const { return clientID_; }
 
   protected:
-    std::string toString_() const { return src_ + " " + dest_; }
+    std::string toString_() const { return clientID_; }
 
   private:
-    PeerID src_; 
-    PeerID dest_;
+    ClientID clientID_; 
 };
 
-inline bool operator<(const MessageBase::PeerID& a, const MessageBase::PeerID& b) { return a < b; }
+inline bool operator<(const MessageBase::ClientID& a, const MessageBase::ClientID& b) { return a < b; }
 
 std::ostream& operator<<(std::ostream& os, const MessageBase&);
 

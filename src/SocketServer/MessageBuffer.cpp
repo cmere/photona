@@ -17,9 +17,9 @@ MessageBuffer::MessageBuffer()
 { }
 
 bool
-MessageBuffer::hasMessageToSend(const MessageBase::PeerID& to) const
+MessageBuffer::hasMessageToSend(const MessageBase::ClientID& to) const
 {
-  return outMsgByDest_.count(to) > 0;
+  return outMsgByClientID_.count(to) > 0;
 }
 
 bool 
@@ -27,17 +27,17 @@ MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg)
 {
   if (pMsg) {
     queueOut_.push_back(pMsg);
-    outMsgByDest_[pMsg->getDest()].push_back(--queueOut_.end());
+    outMsgByClientID_[pMsg->getClientID()].push_back(--queueOut_.end());
   }
   return true;
 }
 
 shared_ptr<MessageBase> 
-MessageBuffer::popMessageToSend(const MessageBase::PeerID& to)
+MessageBuffer::popMessageToSend(const MessageBase::ClientID& to)
 {
   shared_ptr<MessageBase> pMsg;
-  auto found = outMsgByDest_.find(to);
-  if (found != outMsgByDest_.end()) {
+  auto found = outMsgByClientID_.find(to);
+  if (found != outMsgByClientID_.end()) {
     auto& itorList = found->second;
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
@@ -45,7 +45,7 @@ MessageBuffer::popMessageToSend(const MessageBase::PeerID& to)
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
-        outMsgByDest_.erase(found);
+        outMsgByClientID_.erase(found);
       }
     }
   }
@@ -60,13 +60,13 @@ MessageBuffer::extractMessageFromBytes(const char* bytes, unsigned int length)
 }
 
 bool 
-MessageBuffer::canReadMore(const MessageBase::PeerID& src) const
+MessageBuffer::canReadMore(const MessageBase::ClientID& src) const
 {
   return true;
 }
 
 unsigned int
-MessageBuffer::removeSocketMessages(const MessageBase::PeerID&)
+MessageBuffer::removeSocketMessages(const MessageBase::ClientID&)
 {
   return 0;
 }

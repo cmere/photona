@@ -19,7 +19,7 @@ namespace SocketServer
 void 
 TCPSocket::close()
 {
-  MessageBuffer::Singleton().removeSocketMessages(getPeerPair());
+  MessageBuffer::Singleton().removeSocketMessages(getClientID());
   TCPSocketBase::close();
 }
 
@@ -30,7 +30,7 @@ TCPSocket::handleSelectReadable()
   unsigned int bufferSize = TCPReadBufferSize;
   int numBytesRead = 0;
 
-  if (MessageBuffer::Singleton().canReadMore(getPeerPair())) {
+  if (MessageBuffer::Singleton().canReadMore(getClientID())) {
     // copy left-over from last read().
     if (numBytesNotExtracted_ > 0) {
       if (numBytesNotExtracted_ * 2 >= TCPReadBufferSize) {  // for a large message, increase bytes[] buffer.
@@ -59,7 +59,7 @@ TCPSocket::handleSelectReadable()
     char* pMessageBoundary = bytes.get();
     unsigned int numBytes = numBytesNotExtracted_ + (unsigned int)numBytesRead;
 
-    while (MessageBuffer::Singleton().canReadMore(getPeerPair())) {
+    while (MessageBuffer::Singleton().canReadMore(getClientID())) {
       unsigned int numBytesExtracted = MessageBuffer::Singleton().extractMessageFromBytes(pMessageBoundary, numBytes);
       if (numBytesExtracted == 0 ) {  // no more WHOLE message.
         numBytesNotExtracted_ = numBytes;
@@ -113,14 +113,15 @@ TCPSocket::handleSelectWritable()
       ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
     }
 
+    logger << "fd=" << fd() << " wrote " << numBytesSent << " bytes" << endlog;
     return numBytesSent;
   }
 
   // numBytesNotSend_ == 0
   pBytesNotSend_.reset();
 
-  if (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
-    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(getPeerPair());
+  if (MessageBuffer::Singleton().hasMessageToSend(getClientID())) {
+    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(getClientID());
     pair<unique_ptr<char>, unsigned int> bytes_length = msg->toBytes();
 
     char* pCurrent = bytes_length.first.get();
@@ -149,6 +150,7 @@ TCPSocket::handleSelectWritable()
       pBytesNotSend_.reset(new char[numBytesNotSend_]);
       ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
     }
+    logger << "fd=" << fd() << " wrote " << numBytesSent << " bytes" << endlog;
     return numBytesSent;
   }
 
@@ -193,7 +195,7 @@ TCPSocket::hasBytesToSend() const
   if (pBytesNotSend_ && numBytesNotSend_ > 0) {
     return true;
   }
-  if (MessageBuffer::Singleton().hasMessageToSend(getPeerPair())) {
+  if (MessageBuffer::Singleton().hasMessageToSend(getClientID())) {
     return true;
   }
 
