@@ -14,8 +14,17 @@ int main(int argc, char *argv[])
 
   Logger::openLog("socketserver." + to_string(getpid()) + ".log");
 
+  unsigned int port = ListenerTCPSocket::RANDOM_PORT;
+  if (argc >= 1) {
+    istringstream iss(argv[1]);
+    if (!(iss >> port) || port <= 1024) {
+      logger << "invalid port number " << argv[1] << endlog;
+      return EXIT_FAILURE;
+    }
+  }
+
   ListenerSocketServer server;
-  server.listenTo(ListenerTCPSocket::ANY_IPADDRESS, ListenerTCPSocket::RANDOM_PORT);
+  server.listenTo(ListenerTCPSocket::ANY_IPADDRESS, port);
 
   if (!server.run()) {
     exit_code = EXIT_FAILURE;
