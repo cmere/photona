@@ -30,7 +30,7 @@ class TCPSocketBase : public ISelectable
     const std::string& getLocalIPAddress() const { return localIPAddress_; }
     const unsigned int getLocalPort() const { return localPort_; }
     const std::string  getLocalPair() const { return localIPAddress_ + ":" + std::to_string(localPort_); }
-    const std::string  getClientID() const { return getLocalPair(); }
+    const std::string  getClientID() const { return getLocalPair() + "-" + getPeerPair(); }
 
   protected:
     void setLocalIPAddress_(const std::string& localIPAddress) { localIPAddress_ = localIPAddress; }
