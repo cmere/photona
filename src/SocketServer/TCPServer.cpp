@@ -1,6 +1,6 @@
 #include "include/first.hpp"
 #include "FDSelector.hpp"
-#include "ListenerSocketServer.hpp"
+#include "TCPServer.hpp"
 #include "ListenerTCPSocket.hpp"
 #include "TCPSocket.hpp"
 #include "WorkerSocketServer.hpp"
@@ -68,7 +68,7 @@ private:
 };
 
 bool
-ListenerSocketServer::listenTo(const string& ipaddress, unsigned int port)
+TCPServer::listenTo(const string& ipaddress, unsigned int port)
 {
   pListenerTCPSocket_ = make_shared<ListenerTCPSocket>();
   if (!pListenerTCPSocket_->bindAndListen(ipaddress, port)) {
@@ -79,7 +79,7 @@ ListenerSocketServer::listenTo(const string& ipaddress, unsigned int port)
 }
 
 bool
-ListenerSocketServer::run() 
+TCPServer::run() 
 {
   if (!pListenerTCPSocket_ || !pListenerTCPSocket_->isValid()) {
     logger << "listener socket is not ready. exit." << endlog;

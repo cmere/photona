@@ -1,4 +1,4 @@
-#include "ListenerSocketServer.hpp"
+#include "TCPServer.hpp"
 #include "ListenerTCPSocket.hpp"
 #include "Logger.hpp"
 #include "include/first.hpp"
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  ListenerSocketServer server;
+  TCPServer server;
   server.listenTo(ListenerTCPSocket::ANY_IPADDRESS, port);
 
   if (!server.run()) {

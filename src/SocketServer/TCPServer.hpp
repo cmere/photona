@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_LISTENSOCKETSERVER_H
-#define SOCKETSERVER_LISTENSOCKETSERVER_H
+#ifndef SOCKETSERVER_TCPSERVER_H
+#define SOCKETSERVER_TCPSERVER_H
 
 #include <memory>
 #include <string>
@@ -10,23 +10,23 @@ namespace SocketServer
 class ListenerTCPSocket;
 
 /**
- * Listener socket server.
+ * TCP socket server.
  *
  * After accept a connection, it starts a child process acting as worker 
  * socket server. In case child process crash, this listener process will 
  * still be running.
  */
-class ListenerSocketServer 
+class TCPServer 
 {
   public:
-    ListenerSocketServer() { }
+    TCPServer() { }
 
     bool listenTo(const std::string& ipaddress, unsigned int port);
     bool run();
 
   private:
-    ListenerSocketServer(const ListenerSocketServer&) = delete;
-    ListenerSocketServer& operator=(const ListenerSocketServer&) = delete;
+    TCPServer(const TCPServer&) = delete;
+    TCPServer& operator=(const TCPServer&) = delete;
 
   private:
     std::shared_ptr<ListenerTCPSocket> pListenerTCPSocket_;
