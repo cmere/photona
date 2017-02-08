@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include "TCPSocket.hpp"
-#include "TCPSocketBase.hpp"
 
 namespace SocketServer
 {
@@ -12,12 +11,9 @@ namespace SocketServer
 /**
  * TCP socket bind and listen, accept client connections.
  */
-class ListenerTCPSocket : public TCPSocketBase
+class ListenerTCPSocket : public TCPSocket 
 {
   public:
-    static std::string ANY_IPADDRESS;
-    static unsigned int RANDOM_PORT;
-
     ListenerTCPSocket();
 
     virtual int handleSelectReadable();

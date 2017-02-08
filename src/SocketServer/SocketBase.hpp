@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_TCPSOCKETBASE_H
-#define SOCKETSERVER_TCPSOCKETBASE_H
+#ifndef SOCKETSERVER_SOCKETBASE_H
+#define SOCKETSERVER_SOCKETBASE_H
 
 #include <string>
 #include "ISelectable.hpp"
@@ -12,12 +12,15 @@ namespace SocketServer
 /**
  * Maintain socket fd, local/peer address.
  */
-class TCPSocketBase : public ISelectable
+class SocketBase : public ISelectable
 {
   public:
-    TCPSocketBase();
-    TCPSocketBase(int fd, const std::string& peerIPAddress, unsigned int peerPort);
-    virtual ~TCPSocketBase();
+    static std::string ANY_IPADDRESS;
+    static unsigned int RANDOM_PORT;
+
+    SocketBase(int socketType);
+    SocketBase(int fd, const std::string& peerIPAddress, unsigned int peerPort);
+    virtual ~SocketBase();
 
     int fd() const { return fd_; }
     bool isValid() const { return fd_ > 0; }
@@ -33,14 +36,16 @@ class TCPSocketBase : public ISelectable
     const std::string  getClientID() const { return getLocalPair() + "-" + getPeerPair(); }
 
   protected:
+    bool bind_(const std::string& localIPAddress, unsigned int localPort);
+
     void setLocalIPAddress_(const std::string& localIPAddress) { localIPAddress_ = localIPAddress; }
     void setLocalPort_(unsigned int localPort) { localPort_ = localPort; }
 
     std::string toIPString_(const sockaddr_in&);
 
   private:
-    TCPSocketBase(const TCPSocketBase&) = delete;
-    TCPSocketBase& operator=(const TCPSocketBase&) = delete;
+    SocketBase(const SocketBase&) = delete;
+    SocketBase& operator=(const SocketBase&) = delete;
 
   protected:
     int fd_ = -1;
@@ -53,4 +58,3 @@ class TCPSocketBase : public ISelectable
 }
 
 #endif
-

@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
   Logger::openLog("socketserver." + to_string(getpid()) + ".log");
 
-  unsigned int port = ListenerTCPSocket::RANDOM_PORT;
+  unsigned int port = SocketBase::RANDOM_PORT;
   if (argc >= 1) {
     istringstream iss(argv[1]);
     if (!(iss >> port) || port <= 1024) {
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
   }
 
   TCPServer server;
-  server.listenTo(ListenerTCPSocket::ANY_IPADDRESS, port);
+  server.listenTo(SocketBase::ANY_IPADDRESS, port);
 
   if (!server.run()) {
     exit_code = EXIT_FAILURE;

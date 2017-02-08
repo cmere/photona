@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#include "TCPSocketBase.hpp"
+#include "SocketBase.hpp"
 
 struct sockaddr_in;
 
@@ -13,12 +13,12 @@ namespace SocketServer
 /**
  * Two kinds of sockets: client socket connect to server; socket accepted by a listen socker.
  */
-class TCPSocket : public TCPSocketBase
+class TCPSocket : public SocketBase
 {
   public:
-    TCPSocket() { }
+    TCPSocket();
     TCPSocket(int fd, const std::string& peerIPAddress, unsigned int peerPort)
-      : TCPSocketBase(fd, peerIPAddress, peerPort) 
+      : SocketBase(fd, peerIPAddress, peerPort) 
     { }
 
     virtual ~TCPSocket() { }

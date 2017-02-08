@@ -16,11 +16,16 @@ const unsigned int TCPReadBufferSize = 8096;
 namespace SocketServer
 {
 
+TCPSocket::TCPSocket() 
+  : SocketBase(SOCK_STREAM) 
+{ 
+}
+
 void 
 TCPSocket::close()
 {
   MessageBuffer::Singleton().removeSocketMessages(getClientID());
-  TCPSocketBase::close();
+  SocketBase::close();
 }
 
 int
