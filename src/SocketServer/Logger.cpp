@@ -15,7 +15,7 @@ namespace {
 string LOG_DIR = "/var/log/photona/";
 ofstream ofs;
 unsigned int logsize = 0;
-unsigned int LogSizeMax = 1 * 1024 * 1024 * 1024;  // 1G bytes.
+unsigned int LogSizeMax = 300 * 1024 * 1024;  // 300M bytes.
 
 int logtype = 0;
 enum LogType { 
@@ -42,6 +42,7 @@ Logger::openLog(const std::string& logFilename)
     ofs.close();
   }
   ofs.open((LOG_DIR + logFilename).c_str());
+  logsize = 0;
 
   time_t t = time(0);
   string tz = ::localtime(&t)->tm_zone;
@@ -81,7 +82,7 @@ endlog(ostream& os)
   if (pLogger) {
     const string& str = pLogger->str();
     // write to log file.
-    if (logsize <= LogSizeMax && LogType_Enabled[logtype]) {
+    if (LogType_Enabled[logtype]) {
       bst::ptime now(bst::microsec_clock::local_time());
       auto t = now.time_of_day();
       ostringstream timestamp;
@@ -97,7 +98,13 @@ endlog(ostream& os)
       else {
         cout << timestamp.str() << LogType_S[logtype] << str << std::endl;
       }
-      logsize += timestamp.str().size() + LogType_S[logtype].size() + str.size() + 1;  // Windows has two char for newline "\r\n".
+      logsize += timestamp.str().size() + LogType_S[logtype].size() + str.size() + 1;  // NOTE: Windows has two char for newline "\r\n".
+
+      if (logsize >= LogSizeMax && ofs.is_open()) {
+        string strExceedLogSize = timestamp.str() + " log size " + to_string(logsize) + " exceeds limit " + to_string(LogSizeMax) + ". stop logging.";
+        ofs << strExceedLogSize << std::endl;
+        ofs.close();
+      }
     }
     pLogger->str("");
 
