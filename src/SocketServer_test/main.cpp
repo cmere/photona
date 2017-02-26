@@ -7,6 +7,7 @@
 
 #include "include/first.hpp"
 #include "SocketServer/FDSelector.hpp"
+#include "SocketServer/Logger.hpp"
 #include "SocketServer/MessageBuffer.hpp"
 #include "SocketServer/MessageTest.hpp"
 #include "SocketServer/TCPSocket.hpp"
@@ -20,6 +21,8 @@ int main(int argc, char *argv[])
     cout << "Usage: socketserver_test <server ip address> <server port>" << endl;
     return EXIT_FAILURE;
   }
+
+  logger.openLog("log.socketserver_test." + to_string(getpid()));
 
   string serverIPAddress = argv[1];
   unsigned int serverPort = stoi(argv[2]);
@@ -36,9 +39,9 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
     cout << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endl;
-    auto pMsg = make_shared<MessageTest>(pSockets[i]->getClientID());
+    auto pMsg = make_shared<MessageTest>();
     pMsg->setBody("hello " + to_string(i));
-    MessageBuffer::Singleton().queueMessageToSend(pMsg);
+    MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getConnectionID());
     selector.addToReadSelectable(pSockets[i]);
     selector.addToWriteSelectable(pSockets[i]);
   }
@@ -47,7 +50,7 @@ int main(int argc, char *argv[])
     int sel = selector.select();
     cout << "select() = " << sel << endl;
     if (sel <= 0) {
-      return EXIT_FAILURE;
+      break;
     }
 
     auto pReadSockets = selector.getReadyToRead();
@@ -65,5 +68,6 @@ int main(int argc, char *argv[])
     }
   }
 
+  logger.closeLog();
   return EXIT_SUCCESS;
 }
