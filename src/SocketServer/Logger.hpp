@@ -20,6 +20,9 @@ class Logger : public std::ostringstream
     static void openLog(const std::string& logFileName);
     static void closeLog();
 
+    static void enableDebug(bool);
+    static void enableTest(bool);
+
     // manipulator to write log msg. (see std::endl)
     static std::ostream& end(std::ostream& os);
     static std::ostream& debug(std::ostream& os);

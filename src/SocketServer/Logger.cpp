@@ -26,6 +26,7 @@ enum LogType {
 };
 
 string LogType_S[] = { " ", " [DEBUG] ", " [TEST] ", " [FATAL] " };
+bool LogType_Enabled[] = { true, false, false, true };
 
 }  // namespace {
 
@@ -80,7 +81,7 @@ endlog(ostream& os)
   if (pLogger) {
     const string& str = pLogger->str();
     // write to log file.
-    if (logsize <= LogSizeMax) {
+    if (logsize <= LogSizeMax && LogType_Enabled[logtype]) {
       bst::ptime now(bst::microsec_clock::local_time());
       auto t = now.time_of_day();
       ostringstream timestamp;
@@ -146,6 +147,16 @@ Logger::fatal(ostream& os)
   }
 
   return os;
+}
+
+void
+Logger::enableDebug(bool value) {
+  LogType_Enabled[LogType_Debug] = value;
+}
+
+void
+Logger::enableTest(bool value) {
+  LogType_Enabled[LogType_Test] = value;
 }
 
 }
