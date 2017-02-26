@@ -5,6 +5,7 @@
 #include <memory>
 #include <list>
 #include "MessageBase.hpp"
+#include "SocketID.hpp"
 
 namespace SocketServer
 {
@@ -21,15 +22,17 @@ class MessageBuffer
     static MessageBuffer& Singleton();
 
     // extract ONE message, put in queue, return number of bytes extracted.
-    unsigned int extractMessageFromBytes(const char*, unsigned int length);
+    unsigned int extractMessageFromSocket(const char*, unsigned int length, const SocketID&);
 
-    bool canReadMore(const MessageBase::ClientID&) const;
+    bool shouldReadMoreOnSocket(const SocketID&) const;
 
-    bool hasMessageToSend(const MessageBase::ClientID&) const;
-    bool queueMessageToSend(const std::shared_ptr<MessageBase>&);
-    std::shared_ptr<MessageBase> popMessageToSend(const MessageBase::ClientID&);
+    bool hasMessageToSend(const SocketID&) const;
 
-    unsigned int removeSocketMessages(const MessageBase::ClientID&);
+    bool queueMessageToSend(const std::shared_ptr<MessageBase>&, const SocketID&);
+
+    std::shared_ptr<MessageBase> popMessageToSend(const SocketID&);
+
+    //unsigned int removeSocketMessages(const SocketID&);
 
   private:
     MessageBuffer();
@@ -41,8 +44,8 @@ class MessageBuffer
     MessageQueueType queueIn_;
     MessageQueueType queueOut_;
 
-    std::map<MessageBase::ClientID, std::list<MessageQueueType::iterator>> inMsgBySrc_;
-    std::map<MessageBase::ClientID, std::list<MessageQueueType::iterator>> outMsgByClientID_;
+    std::map<SocketID, std::list<MessageQueueType::iterator>> inMsgBySocketID_;
+    std::map<SocketID, std::list<MessageQueueType::iterator>> outMsgBySocketID_;
 };
 
 }

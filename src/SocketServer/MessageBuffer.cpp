@@ -17,27 +17,27 @@ MessageBuffer::MessageBuffer()
 { }
 
 bool
-MessageBuffer::hasMessageToSend(const MessageBase::ClientID& to) const
+MessageBuffer::hasMessageToSend(const SocketID& socketID) const
 {
-  return outMsgByClientID_.count(to) > 0;
+  return outMsgBySocketID_.count(socketID) > 0;
 }
 
 bool 
-MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg)
+MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, const SocketID& socketID)
 {
   if (pMsg) {
     queueOut_.push_back(pMsg);
-    outMsgByClientID_[pMsg->getClientID()].push_back(--queueOut_.end());
+    outMsgBySocketID_[socketID].push_back(--queueOut_.end());
   }
   return true;
 }
 
 shared_ptr<MessageBase> 
-MessageBuffer::popMessageToSend(const MessageBase::ClientID& to)
+MessageBuffer::popMessageToSend(const SocketID& socketID)
 {
   shared_ptr<MessageBase> pMsg;
-  auto found = outMsgByClientID_.find(to);
-  if (found != outMsgByClientID_.end()) {
+  auto found = outMsgBySocketID_.find(socketID);
+  if (found != outMsgBySocketID_.end()) {
     auto& itorList = found->second;
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
@@ -45,7 +45,7 @@ MessageBuffer::popMessageToSend(const MessageBase::ClientID& to)
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
-        outMsgByClientID_.erase(found);
+        outMsgBySocketID_.erase(found);
       }
     }
   }
@@ -53,22 +53,23 @@ MessageBuffer::popMessageToSend(const MessageBase::ClientID& to)
 }
 
 unsigned int
-MessageBuffer::extractMessageFromBytes(const char* bytes, unsigned int length)
+MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, const SocketID& socketID)
 {
-  logger << "extract " << length << " bytes: " << string(bytes, length) << endlog;
+  //queueIn_.push_back(make_shared<>(MessageBase));
+  logger << logger.debug << "extract " << length << " bytes: " << string(bytes, length) << endlog;
   return length;
 }
 
 bool 
-MessageBuffer::canReadMore(const MessageBase::ClientID& src) const
+MessageBuffer::shouldReadMoreOnSocket(const SocketID& socketID) const
 {
   return true;
 }
 
-unsigned int
-MessageBuffer::removeSocketMessages(const MessageBase::ClientID&)
-{
-  return 0;
-}
+//unsigned int
+//MessageBuffer::removeSocketMessages(const SocketID&)
+//{
+//  return 0;
+//}
 
 }

@@ -15,8 +15,10 @@ namespace SocketServer
 
 std::string SocketBase::ANY_IPADDRESS = "*";
 unsigned int SocketBase::RANDOM_PORT = 0;
+SocketID SocketBase::staticSocketID_ = 0;
 
 SocketBase::SocketBase(int socketType)
+  : socketID_(staticSocketID_++)
 {
   fd_ = ::socket(AF_INET, socketType, 0);
   if (fd_ == -1) {
@@ -37,7 +39,7 @@ SocketBase::SocketBase(int socketType)
 }
 
 SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPort)
-  : fd_(fd), peerIPAddress_(peerIPAddress), peerPort_(peerPort)
+  : socketID_(staticSocketID_++), fd_(fd), peerIPAddress_(peerIPAddress), peerPort_(peerPort)
 { }
 
 SocketBase::~SocketBase()

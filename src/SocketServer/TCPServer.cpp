@@ -137,8 +137,8 @@ TCPServer::run()
       numOfChildProcess++;
     }
     else if (childPID == 0) {  // child process
-      Logger::openLog("socketserver." + to_string(getpid()) + "." 
-                      + pClientSocket->getPeerIPAddress() + "." + to_string(pClientSocket->getPeerPort()) + ".log");
+      Logger::openLog("log.socketserver." + to_string(getpid()) + "." 
+                      + pClientSocket->getPeerIPAddress() + "." + to_string(pClientSocket->getPeerPort()));
       pListenerTCPSocket_->close();
       logger << "child pid=" << getpid() << " serve client " << pClientSocket->getPeerPair() << endlog;
       WorkerSocketServer workerServer(pClientSocket);

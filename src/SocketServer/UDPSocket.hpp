@@ -19,6 +19,9 @@ class UDPSocket : public SocketBase
 
     bool bind(const std::string& localIPAddress, unsigned int localPort);
 
+    virtual int handleSelectReadable();
+    virtual int handleSelectWritable();
+
   private:
     UDPSocket(const UDPSocket&) = delete;
     UDPSocket& operator=(const UDPSocket&) = delete;

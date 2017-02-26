@@ -9,9 +9,7 @@ namespace SocketServer
 class MessageTest : public MessageBase
 {
   public:
-    using PeerID = std::string;
-
-    MessageTest(const ClientID& clientID) : MessageBase(clientID) { }
+    MessageTest() : MessageBase() { }
 
     void setBody(const std::string& body) { body_ = body; }
 

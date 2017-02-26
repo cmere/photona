@@ -9,7 +9,7 @@ pair<unique_ptr<char>, unsigned int>
 MessageTest::toBytes() const
 {
   string baseBytes = MessageBase::toString_();
-  unsigned int len = body_.size() + baseBytes.size();
+  unsigned int len = baseBytes.size() + body_.size();
 
   unique_ptr<char> bytes(new char[len]);
   ::memcpy(bytes.get(), baseBytes.c_str(), baseBytes.size());

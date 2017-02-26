@@ -24,7 +24,7 @@ TCPSocket::TCPSocket()
 void 
 TCPSocket::close()
 {
-  MessageBuffer::Singleton().removeSocketMessages(getClientID());
+  //MessageBuffer::Singleton().removeSocketMessages(getClientID());
   SocketBase::close();
 }
 
@@ -35,7 +35,7 @@ TCPSocket::handleSelectReadable()
   unsigned int bufferSize = TCPReadBufferSize;
   int numBytesRead = 0;
 
-  if (MessageBuffer::Singleton().canReadMore(getClientID())) {
+  if (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
     // copy left-over from last read().
     if (numBytesNotExtracted_ > 0) {
       if (numBytesNotExtracted_ * 2 >= TCPReadBufferSize) {  // for a large message, increase bytes[] buffer.
@@ -64,8 +64,8 @@ TCPSocket::handleSelectReadable()
     char* pMessageBoundary = bytes.get();
     unsigned int numBytes = numBytesNotExtracted_ + (unsigned int)numBytesRead;
 
-    while (MessageBuffer::Singleton().canReadMore(getClientID())) {
-      unsigned int numBytesExtracted = MessageBuffer::Singleton().extractMessageFromBytes(pMessageBoundary, numBytes);
+    while (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
+      unsigned int numBytesExtracted = MessageBuffer::Singleton().extractMessageFromSocket(pMessageBoundary, numBytes, socketID_);
       if (numBytesExtracted == 0 ) {  // no more WHOLE message.
         numBytesNotExtracted_ = numBytes;
         pBytesNotExtracted_.reset(new char[numBytesNotExtracted_]);
@@ -125,8 +125,8 @@ TCPSocket::handleSelectWritable()
   // numBytesNotSend_ == 0
   pBytesNotSend_.reset();
 
-  if (MessageBuffer::Singleton().hasMessageToSend(getClientID())) {
-    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(getClientID());
+  if (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
+    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(socketID_);
     pair<unique_ptr<char>, unsigned int> bytes_length = msg->toBytes();
 
     char* pCurrent = bytes_length.first.get();
@@ -200,7 +200,7 @@ TCPSocket::hasBytesToSend() const
   if (pBytesNotSend_ && numBytesNotSend_ > 0) {
     return true;
   }
-  if (MessageBuffer::Singleton().hasMessageToSend(getClientID())) {
+  if (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
     return true;
   }
 

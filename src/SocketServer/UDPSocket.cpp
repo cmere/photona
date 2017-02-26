@@ -24,6 +24,18 @@ UDPSocket::bind(const std::string& localIPAddress, unsigned int localPort)
   return SocketBase::bind_(localIPAddress, localPort);
 }
 
+int 
+UDPSocket::handleSelectReadable()
+{
+  return 0;
+}
+
+int 
+UDPSocket::handleSelectWritable()
+{
+  return 0;
+}
+
 } // namespace SocketServer
 
 
