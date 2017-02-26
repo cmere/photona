@@ -20,19 +20,17 @@ class Logger : public std::ostringstream
     static void openLog(const std::string& logFileKey);
     static void closeLog();
 
-  private:
-    void writeLog_(const std::string&);
-
-  friend std::ostream& endlog(std::ostream&);
-
-  private:
-    static std::ofstream ofs_;
+    // manipulator to write log msg. (see std::endl)
+    static std::ostream& end(std::ostream& os);
+    static std::ostream& debug(std::ostream& os);
+    static std::ostream& test(std::ostream& os);
+    static std::ostream& fatal(std::ostream& os);
 };
 
-// manipulator to write log msg. (see std::endl)
+extern Logger logger;
+
 std::ostream& endlog(std::ostream& os);
 
-extern Logger logger;
 
 }
 

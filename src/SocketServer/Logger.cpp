@@ -9,21 +9,35 @@
 using namespace std;
 namespace bst = boost::posix_time;
 
+namespace {
+
+// implementation
+string LOG_DIR = "/var/log/photona/";
+ofstream ofs;
+int logtype = 0;
+enum LogType { 
+  LogType_Normal = 0,
+  LogType_Debug  = 1,
+  LogType_Test   = 2,
+  LogType_Fatal  = 3,
+};
+
+string LogType_S[] = { " ", " [DEBUG] ", " [TEST] ", " [FATAL] " };
+
+}  // namespace {
+
 namespace SocketServer 
 {
 
-static string LOG_DIR = "/var/log/photona/";
-
 Logger logger;
-ofstream Logger::ofs_;
 
 void
 Logger::openLog(const std::string& logFilename)
 {
-  if (ofs_.is_open()){
-    ofs_.close();
+  if (ofs.is_open()){
+    ofs.close();
   }
-  ofs_.open((LOG_DIR + logFilename).c_str());
+  ofs.open((LOG_DIR + logFilename).c_str());
 
   time_t t = time(0);
   string tz = ::localtime(&t)->tm_zone;
@@ -34,7 +48,7 @@ Logger::openLog(const std::string& logFilename)
 void
 Logger::closeLog() 
 {
-  if (!ofs_.is_open()) {
+  if (!ofs.is_open()) {
     return;
   }
 
@@ -42,11 +56,11 @@ Logger::closeLog()
   string tz = ::localtime(&t)->tm_zone;
   bst::ptime now(bst::second_clock::local_time());
   logger << "log closed " << bst::to_iso_string(now) << " " << tz << endlog;
-  ofs_.close(); 
+  ofs.close(); 
 }
 
 void 
-Logger::writeLog_(const string& str)
+writeLog(const string& str)
 {
   bst::ptime now(bst::microsec_clock::local_time());
   auto t = now.time_of_day();
@@ -57,25 +71,59 @@ Logger::writeLog_(const string& str)
   timestamp << setw(2) << t.seconds() << ".";
   timestamp << setw(3) << t.fractional_seconds() / 1000;
 
-  if (ofs_.is_open()) {
-    ofs_ << timestamp.str() << " " << str << std::endl;
+  if (ofs.is_open()) {
+    ofs << timestamp.str() << LogType_S[logtype] << str << std::endl;
   }
   else {
-    cout << timestamp.str() << " " << str << std::endl;
+    cout << timestamp.str() << LogType_S[logtype] << str << std::endl;
   }
 }
 
-// manipulator to write log msg. (see std::endl)
 ostream&
-endlog(std::ostream& os)
+endlog(ostream& os)
 {
-  auto* pLogger = dynamic_cast<Logger*>(&os);
+  Logger* pLogger = dynamic_cast<Logger*>(&os);
   if (pLogger) {
-    pLogger->writeLog_(pLogger->str());
+    writeLog(pLogger->str());
     pLogger->str("");
   }
   else {
-    os << std::endl;
+    os << endl;
+  }
+
+  logtype = LogType_Normal;
+  return os;
+}
+
+
+ostream&
+Logger::debug(ostream& os)
+{
+  Logger* pLogger = dynamic_cast<Logger*>(&os);
+  if (pLogger) {
+    logtype = LogType_Debug;
+  }
+
+  return os;
+}
+
+ostream&
+Logger::test(ostream& os)
+{
+  Logger* pLogger = dynamic_cast<Logger*>(&os);
+  if (pLogger) {
+    logtype = LogType_Test;
+  }
+
+  return os;
+}
+
+ostream&
+Logger::fatal(ostream& os)
+{
+  Logger* pLogger = dynamic_cast<Logger*>(&os);
+  if (pLogger) {
+    logtype = LogType_Fatal;
   }
 
   return os;
