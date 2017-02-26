@@ -12,15 +12,17 @@ int main(int argc, char *argv[])
 {
   int exit_code = EXIT_SUCCESS;
 
-  Logger::openLog("socketserver." + to_string(getpid()) + ".log");
+  Logger::openLog("log.socketserver." + to_string(getpid()));
 
-  unsigned int port = SocketBase::RANDOM_PORT;
-  if (argc >= 1) {
-    istringstream iss(argv[1]);
-    if (!(iss >> port) || port <= 1024) {
-      logger << "invalid port number " << argv[1] << endlog;
-      return EXIT_FAILURE;
-    }
+  if (argc <= 1) {
+    cout << "usage: \nsocketserver <port>" << endl;
+    return -1;
+  }
+
+  unsigned int port = 0;
+  istringstream iss(argv[1]);
+  if (!(iss >> port) || port <= 1024) {
+    logger << logger.fatal << "invalid port number " << argv[1] << endlog;
   }
 
   TCPServer server;
