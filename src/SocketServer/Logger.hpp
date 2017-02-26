@@ -17,7 +17,7 @@ namespace SocketServer
 class Logger : public std::ostringstream
 {
   public:
-    static void openLog(const std::string& logFileKey);
+    static void openLog(const std::string& logFileName);
     static void closeLog();
 
     // manipulator to write log msg. (see std::endl)
