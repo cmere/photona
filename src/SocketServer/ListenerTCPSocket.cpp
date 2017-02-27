@@ -50,7 +50,7 @@ ListenerTCPSocket::handleSelectWritable()
 bool
 ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int localPort) 
 {
-  if (!bind_(localIPAddress, localPort)) {
+  if (!SocketBase::bind_(localIPAddress, localPort)) {
     return false;
   }
 
