@@ -43,6 +43,7 @@ class SocketBase : public ISelectable
     void setLocalPort_(unsigned int localPort) { localPort_ = localPort; }
 
     std::string toIPString_(const sockaddr_in&);
+    bool toSockAddr_(const std::string&, unsigned int, sockaddr_in&);
 
   private:
     SocketBase(const SocketBase&) = delete;

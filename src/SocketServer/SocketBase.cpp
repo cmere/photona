@@ -22,9 +22,10 @@ SocketBase::SocketBase(int socketType)
 {
   fd_ = ::socket(AF_INET, socketType, 0);
   if (fd_ == -1) {
-    logger << "create socket failed [" << strerror(errno) << "]" << endlog;
+    logger << "create socket " << socketID_ << " failed [" << strerror(errno) << "]" << endlog;
+    return;
   }
-  logger << "socket created fd=" << fd_ << endlog;
+  logger << "create socket " << socketID_ << " fd=" << fd_ << endlog;
 
   /*
   int flag = ::fcntl(fd_, F_GETFD);
@@ -40,7 +41,9 @@ SocketBase::SocketBase(int socketType)
 
 SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPort)
   : socketID_(staticSocketID_++), fd_(fd), peerIPAddress_(peerIPAddress), peerPort_(peerPort)
-{ }
+{
+  logger << "create socket " << socketID_ << " fd=" << fd_ << " peer=" << peerIPAddress << ":" << peerPort << endlog;
+}
 
 SocketBase::~SocketBase()
 {
@@ -69,6 +72,22 @@ SocketBase::toIPString_(const sockaddr_in& sockaddr)
   return string(buf);
 }
 
+bool 
+SocketBase::toSockAddr_(const std::string& ip, unsigned int port, sockaddr_in& addr)
+{
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port);
+
+  int retval = ::inet_pton(AF_INET, ip.c_str(), &addr.sin_addr.s_addr);
+  if (retval <= 0) {
+    logger << "error: convert ip address [" << ip << "] " << strerror(errno) << endlog;
+    return false;
+  }
+  return true;
+}
+
+
 bool
 SocketBase::bind_(const std::string& localIPAddress, unsigned int localPort) 
 {
@@ -82,13 +101,8 @@ SocketBase::bind_(const std::string& localIPAddress, unsigned int localPort)
   else {
     // convert string format, e.g. "192.168.1.100", to network format.
     int retval = inet_pton(AF_INET, localIPAddress.c_str(), &localSockAddr.sin_addr.s_addr);
-    if (retval == 0) {
-      logger << "invalid ip address: " << localIPAddress << endlog;
-      close();
-      return false;
-    }
-    else if (retval == -1) {  // not support AF_INET
-      logger << "invalid address family: " << strerror(errno) << endlog;
+    if (retval <= 0) {
+      logger << "error: convert ip address [" << localIPAddress << "] " << strerror(errno) << endlog;
       close();
       return false;
     }
