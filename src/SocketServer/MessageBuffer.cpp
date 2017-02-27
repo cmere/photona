@@ -6,6 +6,8 @@ using namespace std;
 namespace SocketServer
 {
 
+static  unsigned int MaxInMsgs = 100;
+
 MessageBuffer&
 MessageBuffer::Singleton()
 {
@@ -63,13 +65,12 @@ MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, 
 bool 
 MessageBuffer::shouldReadMoreOnSocket(const SocketID& socketID) const
 {
+  const auto& inMsgs = inMsgBySocketID_.find(socketID);
+  if (inMsgs != inMsgBySocketID_.end() && inMsgs->second.size() >= MaxInMsgs) {
+    logger << logger.debug << "too many incoming messages socketID=" << socketID << " threadhold=" << MaxInMsgs << endlog;
+    return false;
+  }
   return true;
 }
-
-//unsigned int
-//MessageBuffer::removeSocketMessages(const SocketID&)
-//{
-//  return 0;
-//}
 
 }
