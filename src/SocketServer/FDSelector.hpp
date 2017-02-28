@@ -19,6 +19,7 @@ class FDSelector
     void addToReadSelectable(std::shared_ptr<ISelectable>);
     void addToWriteSelectable(std::shared_ptr<ISelectable>);
     //void addToExceptSelectable(shared_ptr<ISelectable> sock);
+    void removeFromAll(std::shared_ptr<ISelectable>);
 
     int select(timeval* timeout = nullptr);
 

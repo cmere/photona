@@ -42,6 +42,13 @@ FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket)
   }
 }
 
+void 
+FDSelector::removeFromAll(std::shared_ptr<ISelectable> pSocket) 
+{
+  readSelectableByFD_.erase(pSocket->fd());
+  writeSelectableByFD_.erase(pSocket->fd());
+}
+
 int
 setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
            fd_set& fdset, bool isWriteSelectable)

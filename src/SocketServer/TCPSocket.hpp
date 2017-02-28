@@ -5,8 +5,6 @@
 #include <string>
 #include "SocketBase.hpp"
 
-struct sockaddr_in;
-
 namespace SocketServer
 {
 

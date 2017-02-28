@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     cout << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endl;
     auto pMsg = make_shared<MessageTest>();
     pMsg->setBody("hello " + to_string(i));
-    MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getConnectionID());
+    MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getSocketID());
     selector.addToReadSelectable(pSockets[i]);
     selector.addToWriteSelectable(pSockets[i]);
   }

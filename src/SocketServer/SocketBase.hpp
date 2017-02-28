@@ -34,7 +34,7 @@ class SocketBase : public ISelectable
     const std::string& getLocalIPAddress() const { return localIPAddress_; }
     const unsigned int getLocalPort() const { return localPort_; }
     const std::string  getLocalPair() const { return localIPAddress_ + ":" + std::to_string(localPort_); }
-    const SocketID& getConnectionID() const { return socketID_; }
+    const SocketID& getSocketID() const { return socketID_; }
 
   protected:
     bool bind_(const std::string& localIPAddress, unsigned int localPort);
@@ -55,7 +55,7 @@ class SocketBase : public ISelectable
     std::string peerIPAddress_;
     unsigned int peerPort_ = -1;
     std::string localIPAddress_;
-    SocketID localPort_ = -1;
+    unsigned int localPort_ = -1;
     static SocketID staticSocketID_;
 };
 

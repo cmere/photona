@@ -47,6 +47,7 @@ SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPor
 
 SocketBase::~SocketBase()
 {
+  logger << "dtor socket " << socketID_ << endlog;
   close();
 }
 
@@ -55,7 +56,7 @@ SocketBase::close()
 {
   if (fd_ > 0) {
     ::close(fd_);
-    logger << "close fd=" << fd_ << endlog;
+    logger << "close socket " << socketID_ << " fd=" << fd_ << endlog;
     fd_ = -1;
   }
 }
