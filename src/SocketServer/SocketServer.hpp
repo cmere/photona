@@ -18,6 +18,8 @@ class UDPSocket;
 class SocketServer 
 {
   public:
+    SocketServer() { }
+
     bool run(const std::string& ipaddress, unsigned int port);
 
   private:

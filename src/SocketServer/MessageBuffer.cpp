@@ -30,6 +30,7 @@ MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, cons
   if (pMsg) {
     queueOut_.push_back(pMsg);
     outMsgBySocketID_[socketID].push_back(--queueOut_.end());
+    logger << logger.test << "socket " << socketID << " queue message " << sizeof(*pMsg) << " bytes" << endlog;
   }
   return true;
 }
@@ -44,6 +45,7 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
       pMsg = *itor;
+      logger << logger.test << "socket " << socketID << " pop message " << sizeof(*pMsg) << " bytes" << endlog;
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
@@ -58,7 +60,7 @@ unsigned int
 MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, const SocketID& socketID)
 {
   //queueIn_.push_back(make_shared<>(MessageBase));
-  logger << logger.debug << "extract " << length << " bytes: " << string(bytes, length) << endlog;
+  logger << logger.test << "socket " << socketID << " extract " << length << " bytes"  << endlog;
   return length;
 }
 

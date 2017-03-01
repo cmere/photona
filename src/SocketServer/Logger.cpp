@@ -26,7 +26,7 @@ enum LogType {
 };
 
 string LogType_S[] = { " ", " [DEBUG] ", " [TEST] ", " [FATAL] " };
-bool LogType_Enabled[] = { true, false, false, true };
+bool LogType_Enabled[] = { true, false, true, true };
 
 }  // namespace {
 

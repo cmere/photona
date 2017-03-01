@@ -1,7 +1,7 @@
-#include "TCPServer.hpp"
-#include "ListenerTCPSocket.hpp"
-#include "Logger.hpp"
 #include "include/first.hpp"
+#include "Logger.hpp"
+#include "SocketBase.hpp"
+#include "SocketServer.hpp"
 
 #include <iostream>
 
@@ -12,12 +12,12 @@ int main(int argc, char *argv[])
 {
   int exit_code = EXIT_SUCCESS;
 
-  Logger::openLog("log.socketserver." + to_string(getpid()));
-
   if (argc <= 1) {
     cout << "usage: \nsocketserver <port>" << endl;
     return -1;
   }
+
+  Logger::openLog("log.socketserver");
 
   unsigned int port = 0;
   istringstream iss(argv[1]);
@@ -25,10 +25,8 @@ int main(int argc, char *argv[])
     logger << logger.fatal << "invalid port number " << argv[1] << endlog;
   }
 
-  TCPServer server;
-  server.listenTo(SocketBase::ANY_IPADDRESS, port);
-
-  if (!server.run()) {
+  SocketServer::SocketServer server;
+  if (!server.run(SocketBase::ANY_IPADDRESS, port)) {
     exit_code = EXIT_FAILURE;
   }
 

@@ -54,6 +54,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
       return false;
     }
 
+    // write
     const auto& readyToWriteSockets = selector.getReadyToWrite();
     for (const auto& elm : readyToWriteSockets) {
       if (elm->handleSelectWritable() <= 0 && elm->fd() < 0) {
@@ -63,6 +64,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
       }
     }
 
+    // read and accept connection
     const auto& readyToReadSockets = selector.getReadyToRead();
     for (const auto& elm : readyToReadSockets) {
       if (elm->handleSelectReadable() <= 0 && elm->fd() < 0) {

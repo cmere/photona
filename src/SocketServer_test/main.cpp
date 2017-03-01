@@ -9,7 +9,7 @@
 #include "SocketServer/FDSelector.hpp"
 #include "SocketServer/Logger.hpp"
 #include "SocketServer/MessageBuffer.hpp"
-#include "SocketServer/MessageTest.hpp"
+#include "SocketServer/MessageEcho.hpp"
 #include "SocketServer/TCPSocket.hpp"
 
 using namespace std;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  logger.openLog("log.socketserver_test." + to_string(getpid()));
+  logger.openLog("log.socketserver_test");
 
   string serverIPAddress = argv[1];
   unsigned int serverPort = stoi(argv[2]);
@@ -33,14 +33,13 @@ int main(int argc, char *argv[])
 
   for (unsigned int i = 0; i < N; ++i) {
     pSockets[i].reset(new TCPSocket());
-    cout << "connecting to " << serverIPAddress << ":" << serverPort << endl;
     if (!pSockets[i]->connectTo(serverIPAddress, serverPort)) {
-      cout << "socket connect failed: " << strerror(errno) << endl;
+      logger << " socket connect failed: " << strerror(errno) << endlog;
       return EXIT_FAILURE;
     }
-    cout << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endl;
-    auto pMsg = make_shared<MessageTest>();
-    pMsg->setBody("hello " + to_string(i));
+    logger << logger.test << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endlog;
+    auto pMsg = make_shared<MessageEcho>();
+    pMsg->setContent("hello " + to_string(i));
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getSocketID());
     selector.addToReadSelectable(pSockets[i]);
     selector.addToWriteSelectable(pSockets[i]);
@@ -48,15 +47,16 @@ int main(int argc, char *argv[])
 
   while (1) {
     int sel = selector.select();
-    cout << "select() = " << sel << endl;
+    logger << logger.debug << "select() = " << sel << endlog;
     if (sel <= 0) {
+      logger << "select return 0, exit" << endlog;
       break;
     }
 
     auto pReadSockets = selector.getReadyToRead();
-    cout << "socket ready to read " << pReadSockets.size() << endl;
+    logger << logger.test << "number socket ready to read = " << pReadSockets.size() << endlog;
     auto pWriteSockets = selector.getReadyToWrite();
-    cout << "socket ready to write " << pWriteSockets.size() << endl;
+    logger << logger.test << "number socket ready to write = " << pWriteSockets.size() << endlog;
 
     for (auto pReadSocket : pReadSockets) {
       if (pReadSocket->handleSelectReadable() <= 0) {  // eof or error
