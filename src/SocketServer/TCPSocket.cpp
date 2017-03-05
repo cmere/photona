@@ -127,7 +127,7 @@ TCPSocket::handleSelectWritable()
 
   if (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
     shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
-    pair<unique_ptr<char>, unsigned int> bytes_length = pMsg->toBytes();
+    pair<unique_ptr<char>, unsigned int> bytes_length = MessageBase::toBytes(*pMsg);
 
     char* pCurrent = bytes_length.first.get();
     unsigned int numBytes = bytes_length.second;

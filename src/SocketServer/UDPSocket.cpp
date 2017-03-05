@@ -70,7 +70,7 @@ UDPSocket::handleSelectWritable()
     return -1;
   }
 
-  auto bytesAndSize = pMsg->toBytes();
+  auto bytesAndSize = MessageBase::toBytes(*pMsg);
   auto sentSize = ::sendto(fd_, bytesAndSize.first.get(), bytesAndSize.second, 0, (const sockaddr*)&addr, sizeof(addr));
   logger << "socket " << socketID_ << " sent " << sentSize << " bytes to " << peerIP << ":" << peerPort << endlog;
   if (sentSize <= bytesAndSize.second) {

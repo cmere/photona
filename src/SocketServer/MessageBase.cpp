@@ -16,17 +16,26 @@ MessageBase::fromBytes(const char* bytes, unsigned int length)
     istringstream iss(string(bytes, length));
     // peek message type
     unsigned int type;
-    iss >> type;
+    bool isTypeValid = MessageBase::parseT_<unsigned int>(iss, type);
     iss.seekg(ios_base::beg);
+    if (!isTypeValid) {
+      logger << "error: failed to parse message type." << endlog;
+      return unique_ptr<MessageBase>(nullptr);
+    }
+
     if (iss) {
       if (type == TEcho) {
         pMsg.reset(new MessageEcho());
         iss >> *pMsg;
       }
+      else {
+        pMsg.reset(nullptr);
+        logger << "error: unknown message type " << type << endlog;
+      }
     }
 
     if (!iss) {
-      pMsg = nullptr;
+      pMsg.reset(nullptr);
       logger << "error: failed to create message from bytes. type=" << type << endlog;
     }
   }
@@ -34,19 +43,31 @@ MessageBase::fromBytes(const char* bytes, unsigned int length)
   return move(pMsg);
 }
 
+std::pair<unique_ptr<char>, unsigned int> 
+MessageBase::toBytes(const MessageBase& msg)
+{
+  ostringstream oss;
+  oss << msg;
+  unsigned int len = oss.str().size();
+
+  unique_ptr<char> bytes(new char[len]);
+  ::memcpy(bytes.get(), oss.str().c_str(), len);
+
+  return make_pair(move(bytes), len);
+}
+
 void
 MessageBase::parse_(istream& is)
 {
-  is >> type_;
+  if (!parseT_(is, type_)) {
+    logger << "error: fail to parse message type" << endlog;
+  }
 }
 
 void
 MessageBase::print_(ostream& os) const
 {
-  os << type_;
+  printT_(os, type_);
 }
-
-
-
 
 }
