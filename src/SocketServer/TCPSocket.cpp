@@ -51,12 +51,12 @@ TCPSocket::handleSelectReadable()
 
     numBytesRead = ::read(fd_, bytes.get() + numBytesNotExtracted_, bufferSize - numBytesNotExtracted_);
     if (numBytesRead == -1) {
-      logger << "socket read error fd=" << fd_ << " " << strerror(errno) << endlog;
+      logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
       close();
       return -1;
     }
     else if (numBytesRead == 0) {  // eof
-      logger << "socket EOF fd=" << fd_ << endlog;
+      logger << logger.test << "socket=" << socketID_ << " EOF" << endlog;
       close();
       return 0;
     }
@@ -103,11 +103,11 @@ TCPSocket::handleSelectWritable()
   if (numBytesNotSend_ > 0) {
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytesNotSend_);
     if (numBytesSent == -1) {
-      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endlog;
+      logger << "socket=" << socketID_ << " write error" << strerror(errno) << endlog;
       return -1;
     }
     else if (numBytesSent == 0) { // nothing was written, shouldn't happen
-      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endlog;
+      logger << "ERROR: should not write zero bytes. socket=" << socketID_ << endlog;
     }
     else {
       numBytesNotSend_ -= numBytesSent;
@@ -118,7 +118,7 @@ TCPSocket::handleSelectWritable()
       ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
     }
 
-    logger << "fd=" << fd() << " wrote " << numBytesSent << " bytes" << endlog;
+    logger << logger.test << "socket=" << socketID_ << " wrote " << numBytesSent << " bytes" << endlog;
     return numBytesSent;
   }
 
@@ -126,24 +126,24 @@ TCPSocket::handleSelectWritable()
   pBytesNotSend_.reset();
 
   if (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
-    shared_ptr<MessageBase> msg = MessageBuffer::Singleton().popMessageToSend(socketID_);
-    pair<unique_ptr<char>, unsigned int> bytes_length = msg->toBytes();
+    shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
+    pair<unique_ptr<char>, unsigned int> bytes_length = pMsg->toBytes();
 
     char* pCurrent = bytes_length.first.get();
     unsigned int numBytes = bytes_length.second;
 
     if (numBytes <= 0) {
-      logger << "failed to get bytes from message fd=" << fd_ << " " << *msg << endlog;
+      logger << "failed to get bytes from message socket=" << socketID_ << " " << *pMsg << endlog;
       return 0;
     }
 
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytes);
     if (numBytesSent == -1) {
-      logger << "socket write error. fd=" << fd_ << " " << strerror(errno) << endlog;
+      logger << "socket write error. socket=" << socketID_ << " " << strerror(errno) << endlog;
       return -1;
     }
     else if (numBytesSent == 0) { // shouldn't happen
-      logger << "ERROR: should not write zero bytes. fd=" << fd_ << endlog;
+      logger << "ERROR: should not write zero bytes. socket=" << socketID_ << endlog;
     }
     else {
       numBytes -= numBytesSent;
@@ -155,7 +155,7 @@ TCPSocket::handleSelectWritable()
       pBytesNotSend_.reset(new char[numBytesNotSend_]);
       ::memcpy(pBytesNotSend_.get(), pCurrent, numBytesNotSend_);
     }
-    logger << "fd=" << fd() << " wrote " << numBytesSent << " bytes" << endlog;
+    logger << logger.test << "socket=" << socketID_ << " wrote " << numBytesSent << " bytes" << endlog;
     return numBytesSent;
   }
 
@@ -172,7 +172,7 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
   inet_pton(AF_INET, serverIPAddress.c_str(), &peerSockAddr.sin_addr.s_addr);
 
   if (::connect(fd_, (const sockaddr*)&peerSockAddr, peerSockAddrLength) == -1) {
-    logger << "socket connect failed: fd=" << fd_ << " " << strerror(errno) << endlog;
+    logger << "socket=" << socketID_ << " connect failed: " << strerror(errno) << endlog;
     return false;
   }
   
@@ -183,7 +183,7 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
   sockaddr_in localSockAddr;
   socklen_t localSockAddrLength = sizeof(localSockAddr);
   if (::getsockname(fd_, (sockaddr*)&localSockAddr, &localSockAddrLength) == -1) {
-    logger << "socket address failed fd=" << fd_ << " " << strerror(errno) << endlog;
+    logger << "socket=" << socketID_ << " get address failed: " << strerror(errno) << endlog;
     close();
     return false;
   }

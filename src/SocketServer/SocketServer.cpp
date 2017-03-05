@@ -20,20 +20,21 @@ SocketServer::run(const string& ipaddress, unsigned int port)
 {
   pTCPServerSocket_ = make_shared<ListenerTCPSocket>();
   if (!pTCPServerSocket_->bindAndListen(ipaddress, port)) {
-    logger << "socket bind/listen failed: ipaddress=" << ipaddress << " port=" << port << endlog;
+    logger << "socket=" << pTCPServerSocket_->getSocketID() << " bind/listen failed: ipaddress=" << ipaddress << " port=" << port << endlog;
     return false;
   }
 
   if (!pTCPServerSocket_ || !pTCPServerSocket_->isValid()) {
-    logger << "listener socket is not ready. exit." << endlog;
+    logger << "socket=" << pTCPServerSocket_->getSocketID() << " is not ready to listen. exit." << endlog;
     return false;
   }
 
-  logger << "listening " << pTCPServerSocket_->getLocalIPAddress() << ":" << pTCPServerSocket_->getLocalPort() << endlog;
+  logger << logger.test << "socket=" << pTCPServerSocket_->getSocketID() 
+         << " listening " << pTCPServerSocket_->getLocalIPAddress() << ":" << pTCPServerSocket_->getLocalPort() << endlog;
 
   pUDPServerSocket_ = make_shared<UDPSocket>();
   if (!pUDPServerSocket_->bind(ipaddress, port)) {
-    logger << "error: failed to bind UPD port " << ipaddress << ":" << port << endlog;
+    logger << "error: socket=" << pUDPServerSocket_->getSocketID() << " failed to bind UPD port " << ipaddress << ":" << port << endlog;
     return false;
   }
 
@@ -44,7 +45,12 @@ SocketServer::run(const string& ipaddress, unsigned int port)
   
   while (1) {
     if (!pTCPServerSocket_->isValid()) {
-      logger << "listener socket is invalid. exit." << endlog;
+      logger << "socket=" << pTCPServerSocket_->getSocketID() << " is closed. exit." << endlog;
+      return false;
+    }
+
+    if (!pUDPServerSocket_->isValid()) {
+      logger << "socket=" << pUDPServerSocket_->getSocketID() << " is closed. exit." << endlog;
       return false;
     }
 
@@ -58,7 +64,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     const auto& readyToWriteSockets = selector.getReadyToWrite();
     for (const auto& elm : readyToWriteSockets) {
       if (elm->handleSelectWritable() <= 0 && elm->fd() < 0) {
-        logger << "remove socket " << elm->getSocketID() << " because write error." << endlog;
+        logger << logger.test << "remove socket " << elm->getSocketID() << " because write error." << endlog;
         selector.removeFromAll(elm);
         continue;
       }
@@ -68,7 +74,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     const auto& readyToReadSockets = selector.getReadyToRead();
     for (const auto& elm : readyToReadSockets) {
       if (elm->handleSelectReadable() <= 0 && elm->fd() < 0) {
-        logger << "remove socket " << elm->getSocketID() << " because EOF or read error." << endlog;
+        logger << logger.test << "remove socket " << elm->getSocketID() << " because EOF or read error." << endlog;
         selector.removeFromAll(elm);
         continue;
       }

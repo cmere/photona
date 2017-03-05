@@ -54,9 +54,9 @@ int main(int argc, char *argv[])
     }
 
     auto pReadSockets = selector.getReadyToRead();
-    logger << logger.test << "number socket ready to read = " << pReadSockets.size() << endlog;
+    logger << logger.debug << "number socket ready to read = " << pReadSockets.size() << endlog;
     auto pWriteSockets = selector.getReadyToWrite();
-    logger << logger.test << "number socket ready to write = " << pWriteSockets.size() << endlog;
+    logger << logger.debug << "number socket ready to write = " << pWriteSockets.size() << endlog;
 
     for (auto pReadSocket : pReadSockets) {
       if (pReadSocket->handleSelectReadable() <= 0) {  // eof or error
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
     for (auto pWriteSocket : pWriteSockets) {
       pWriteSocket->handleSelectWritable();
     }
+    break;
   }
 
   logger.closeLog();

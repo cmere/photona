@@ -34,6 +34,8 @@ class MessageBuffer
 
     //unsigned int removeSocketMessages(const SocketID&);
 
+    int getReadFD() const { return fdRead_; }
+
   private:
     MessageBuffer();
     MessageBuffer(const MessageBuffer&) = delete;
@@ -46,6 +48,9 @@ class MessageBuffer
 
     std::map<SocketID, std::list<MessageQueueType::iterator>> inMsgBySocketID_;
     std::map<SocketID, std::list<MessageQueueType::iterator>> outMsgBySocketID_;
+
+    int fdRead_;
+    int fdWrite_;
 };
 
 }

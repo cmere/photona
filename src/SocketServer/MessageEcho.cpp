@@ -8,14 +8,28 @@ namespace SocketServer {
 pair<unique_ptr<char>, unsigned int> 
 MessageEcho::toBytes() const
 {
-  string baseBytes = MessageBase::toString_();
-  unsigned int len = baseBytes.size() + content_.size();
+  ostringstream oss;
+  oss << *this;
+  unsigned int len = oss.str().size();
 
   unique_ptr<char> bytes(new char[len]);
-  ::memcpy(bytes.get(), baseBytes.c_str(), baseBytes.size());
-  ::memcpy(bytes.get() + baseBytes.size(), content_.c_str(), content_.size());
+  ::memcpy(bytes.get(), oss.str().c_str(), len);
 
   return make_pair(move(bytes), len);
+}
+
+void
+MessageEcho::print_(ostream& os) const
+{
+  MessageBase::print_(os);
+  os << content_;
+}
+
+void
+MessageEcho::parse_(istream& is)
+{
+  MessageBase::parse_(is);
+  is >> content_;
 }
 
 }

@@ -15,20 +15,43 @@ namespace SocketServer
 class MessageBase
 {
   public:
-    MessageBase() { }
+    static std::unique_ptr<MessageBase> fromBytes(const char* bytes, unsigned int length);
+
     virtual ~MessageBase() { }
 
     virtual std::pair<std::unique_ptr<char>, unsigned int> toBytes() const = 0;
 
+    friend std::istream& operator>>(std::istream&,       MessageBase&);
+    friend std::ostream& operator<<(std::ostream&, const MessageBase&);
+
   protected:
-    std::string toString_() const { return ""; }
+    enum { 
+      TEcho = 1,
+    };
+
+    MessageBase(unsigned int type) : type_(type)
+    { }
+
+    virtual void parse_(std::istream&);
+    virtual void print_(std::ostream&) const;
 
   private:
+    unsigned int type_;
 };
 
 //inline bool operator<(const MessageBase::PeerID& a, const MessageBase::PeerID& b) { return a < b; }
 
-std::ostream& operator<<(std::ostream& os, const MessageBase&);
+inline std::istream& operator>>(std::istream& is, MessageBase& msg)
+{
+  msg.parse_(is);
+  return is;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const MessageBase& msg)
+{
+  msg.print_(os);
+  return os;
+}
 
 }
 

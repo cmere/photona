@@ -1,6 +1,8 @@
 #include "include/first.hpp"
 #include "MessageBuffer.hpp"
 
+#include <unistd.h>
+
 using namespace std;
 
 namespace SocketServer
@@ -16,7 +18,15 @@ MessageBuffer::Singleton()
 }
 
 MessageBuffer::MessageBuffer()
-{ }
+  : fdRead_(-1), fdWrite_(-1)
+{
+  int pipefd[2];
+  if (pipe(pipefd) == -1) {
+    logger << logger.fatal << "MessageBuffer failed to open pipe: " << strerror(errno) << endlog;
+  }
+  fdRead_ = pipefd[0];
+  fdWrite_ = pipefd[1];
+}
 
 bool
 MessageBuffer::hasMessageToSend(const SocketID& socketID) const
@@ -30,7 +40,7 @@ MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, cons
   if (pMsg) {
     queueOut_.push_back(pMsg);
     outMsgBySocketID_[socketID].push_back(--queueOut_.end());
-    logger << logger.test << "socket " << socketID << " queue message " << sizeof(*pMsg) << " bytes" << endlog;
+    logger << logger.test << "socket=" << socketID << " queue message " << sizeof(*pMsg) << " bytes" << endlog;
   }
   return true;
 }
@@ -45,7 +55,7 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
       pMsg = *itor;
-      logger << logger.test << "socket " << socketID << " pop message " << sizeof(*pMsg) << " bytes" << endlog;
+      logger << logger.test << "socket=" << socketID << " pop message " << sizeof(*pMsg) << " bytes" << endlog;
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
@@ -59,8 +69,17 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
 unsigned int
 MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, const SocketID& socketID)
 {
-  //queueIn_.push_back(make_shared<>(MessageBase));
-  logger << logger.test << "socket " << socketID << " extract " << length << " bytes"  << endlog;
+  MessageBase* p = MessageBase::fromBytes(bytes, length).release();
+  if (!p) {
+    return 0;
+  }
+  cout << typeid(*p).name() << endl;
+  shared_ptr<MessageBase> pMsg;
+  pMsg.reset(p);
+  queueIn_.push_back(pMsg);
+  inMsgBySocketID_[socketID].push_back(--queueIn_.end());
+  cout << typeid(*pMsg).name() << endl;
+  logger << logger.test << "socket=" << socketID << " extract message: " << *pMsg << endlog;
   return length;
 }
 
