@@ -69,18 +69,24 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
 unsigned int
 MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, const SocketID& socketID)
 {
-  MessageBase* p = MessageBase::fromBytes(bytes, length).release();
-  if (!p) {
+  auto r = MessageBase::fromBytes(bytes, length);
+  shared_ptr<MessageBase> pMsg;
+  pMsg.reset(r.first.release());
+  int numBytesExtracted = r.second;
+  if (!pMsg) {
+    return numBytesExtracted;
+    if (numBytesExtracted > 0) {
+      logger << logger.test << "socket=" << socketID << " failed to extract a message."
+             << " length=" << length << " [" << string(bytes, min((int)length, 100)) << "...]"
+             << " " << numBytesExtracted << " bytes discarded." << endlog;
+      return length;
+    }
     return 0;
   }
-  cout << typeid(*p).name() << endl;
-  shared_ptr<MessageBase> pMsg;
-  pMsg.reset(p);
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
-  cout << typeid(*pMsg).name() << endl;
-  logger << logger.test << "socket=" << socketID << " extract message: " << *pMsg << endlog;
-  return length;
+  logger << logger.test << "socket=" << socketID << " extract message " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
+  return numBytesExtracted;
 }
 
 bool 

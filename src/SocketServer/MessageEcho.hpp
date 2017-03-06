@@ -11,6 +11,8 @@ class MessageEcho : public MessageBase
   public:
     MessageEcho() : MessageBase(MessageBase::TEcho) { }
 
+    virtual std::string getName() const { return "MessageEcho"; }
+
     void setContent(const std::string& content) { content_ = content; }
 
   protected:

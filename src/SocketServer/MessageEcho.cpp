@@ -16,9 +16,7 @@ void
 MessageEcho::parse_(istream& is)
 {
   MessageBase::parse_(is);
-  if (!parseT_(is, content_)) {
-    logger << "error: MessageEcho failed to parse content" << endlog;
-  }
+  parseT_(is, content_, "content");
 }
 
 }
