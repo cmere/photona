@@ -90,7 +90,7 @@ FDSelector::select(timeval* timeout)
   int numSelectedFDs = 0;
   while (1) {  // go back when received signal
     // block wait
-    int retval = ::select(maxfd + 1, &readFDSet, &writeFDSet, nullptr, nullptr);
+    int retval = ::select(maxfd + 1, &readFDSet, &writeFDSet, nullptr, timeout);
     if (retval == -1) {
       if (errno == EINTR) {  // received signal
         logger << "socket select/poll signalled." << strerror(errno) << endlog;
