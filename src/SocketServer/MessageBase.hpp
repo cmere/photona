@@ -29,9 +29,10 @@ class MessageBase
   protected:
     enum { 
       TEcho = 1,
+      TTest, 
     };
 
-    MessageBase(unsigned int type) : type_(type)
+    MessageBase(int type) : type_(type)
     { }
 
     virtual void parse_(std::istream&);
@@ -55,7 +56,8 @@ class MessageBase
     static int parseData_(std::istream& is, std::string& str); // throw exception
 
   private:
-    unsigned int type_;
+    int type_;
+    friend class MessageTest;
 };
 
 //inline bool operator<(const MessageBase::PeerID& a, const MessageBase::PeerID& b) { return a < b; }
@@ -85,12 +87,14 @@ template<>
       std::string str;
       if (parseData_(is, t) <= 0) {
         logger << getName() << " failed to parse field " << fieldName << endlog;
+        is.setstate(std::ios::failbit);
         return false;
       }
       return true;
     }
     catch (...) {
       logger << getName() << " failed to parse field " << fieldName << endlog;
+      is.setstate(std::ios::failbit);
       return false;
     }
   }
@@ -102,6 +106,7 @@ template<>
       std::string str;
       if (parseData_(is, str) <= 0) {
         logger << getName() << " failed to parse field " << fieldName << endlog;
+        is.setstate(std::ios::failbit);
         return false;
       }
       t = std::stoul(str);
@@ -109,6 +114,27 @@ template<>
     }
     catch (...) {
       logger << getName() << " failed to parse field " << fieldName << endlog;
+      is.setstate(std::ios::failbit);
+      return false;
+    }
+  }
+
+template<>
+  inline bool MessageBase::parseT_<int>(std::istream& is, int& t, const std::string& fieldName)
+  {
+    try {
+      std::string str;
+      if (parseData_(is, str) <= 0) {
+        logger << getName() << " failed to parse field " << fieldName << endlog;
+        is.setstate(std::ios::failbit);
+        return false;
+      }
+      t = std::stoi(str);
+      return true;
+    }
+    catch (...) {
+      logger << getName() << " failed to parse field " << fieldName << endlog;
+      is.setstate(std::ios::failbit);
       return false;
     }
   }

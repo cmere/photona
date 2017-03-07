@@ -1,6 +1,7 @@
 #include "include/first.hpp"
 #include "MessageBase.hpp"
 #include "MessageEcho.hpp"
+#include "MessageTest.hpp"
 
 using namespace std;
 
@@ -17,7 +18,7 @@ MessageBase::fromBytes(const char* bytes, unsigned int length)
     istringstream iss(string(bytes, length));
 
     // peek message length and type
-    unsigned int type = 0;
+    int type = 0;
     try {
       string strMsgLen;
       ;
@@ -39,7 +40,7 @@ MessageBase::fromBytes(const char* bytes, unsigned int length)
         return make_pair(unique_ptr<MessageBase>(nullptr), length);
       };
       iss.seekg(ios_base::beg);
-      type = stoul(strType);
+      type = stoi(strType);
     }
     catch (...) {
       logger << "error: failed to parse message type." << endlog;
@@ -51,9 +52,13 @@ MessageBase::fromBytes(const char* bytes, unsigned int length)
         pMsg.reset(new MessageEcho());
         iss >> *pMsg;
       }
+      else if (type == TTest) {
+        pMsg.reset(new MessageTest());
+        iss >> *pMsg;
+      }
       else {
         pMsg.reset(nullptr);
-        logger << "error: unknown message type " << type << endlog;
+        logger << logger.test << "error: unknown message type " << type << endlog;
       }
     }
 
