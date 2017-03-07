@@ -26,6 +26,14 @@ class MessageBase
     friend std::istream& operator>>(std::istream&,       MessageBase&);
     friend std::ostream& operator<<(std::ostream&, const MessageBase&);
 
+  private:
+    template<class T> 
+      class ParseTrait
+      {
+        public:
+          static T convert(const std::string&);
+      };
+
   protected:
     enum { 
       TEcho = 1,
@@ -48,8 +56,21 @@ class MessageBase
     template<class T>
       bool parseT_(std::istream& is, T& t, const std::string& fieldName)
       {
-        logger << "template memeber function MessageBase::parseT_() must be specialized."<< endlog;
-        return false;
+        try {  // stoi stoul may throw exception
+          std::string str;
+          if (parseData_(is, str) <= 0) {
+            logger << getName() << " failed to parse field " << fieldName << endlog;
+            is.setstate(std::ios::failbit);
+            return false;
+          }
+          t = ParseTrait<T>::convert(str);
+          return true;
+        }
+        catch (...) {
+          logger << getName() << " failed to parse field " << fieldName << endlog;
+          is.setstate(std::ios::failbit);
+          return false;
+        }
       }
 
   private:
@@ -80,64 +101,31 @@ template<>
     os << t.size() << '|' << t;
   }
 
-template<>
-  inline bool MessageBase::parseT_<std::string>(std::istream& is, std::string& t, const std::string& fieldName) 
-  {
-    try {
-      std::string str;
-      if (parseData_(is, t) <= 0) {
-        logger << getName() << " failed to parse field " << fieldName << endlog;
-        is.setstate(std::ios::failbit);
-        return false;
-      }
-      return true;
-    }
-    catch (...) {
-      logger << getName() << " failed to parse field " << fieldName << endlog;
-      is.setstate(std::ios::failbit);
-      return false;
-    }
-  }
+///////////////////////////////////////////////////////////////////////////////////////
+// ParseTrait template specialization
 
-template<>
-  inline bool MessageBase::parseT_<unsigned int>(std::istream& is, unsigned int& t, const std::string& fieldName)
-  {
-    try {  // stoi stoul may throw exception
-      std::string str;
-      if (parseData_(is, str) <= 0) {
-        logger << getName() << " failed to parse field " << fieldName << endlog;
-        is.setstate(std::ios::failbit);
-        return false;
-      }
-      t = std::stoul(str);
-      return true;
-    }
-    catch (...) {
-      logger << getName() << " failed to parse field " << fieldName << endlog;
-      is.setstate(std::ios::failbit);
-      return false;
-    }
-  }
+template<> 
+  class MessageBase::ParseTrait<unsigned int> {
+    public:
+      static unsigned int convert(const std::string& str) { return std::stoul(str); }
+  };
 
-template<>
-  inline bool MessageBase::parseT_<int>(std::istream& is, int& t, const std::string& fieldName)
-  {
-    try {
-      std::string str;
-      if (parseData_(is, str) <= 0) {
-        logger << getName() << " failed to parse field " << fieldName << endlog;
-        is.setstate(std::ios::failbit);
-        return false;
-      }
-      t = std::stoi(str);
-      return true;
-    }
-    catch (...) {
-      logger << getName() << " failed to parse field " << fieldName << endlog;
-      is.setstate(std::ios::failbit);
-      return false;
-    }
-  }
-}
+template<> 
+  class MessageBase::ParseTrait<int> {
+    public:
+      static int convert(const std::string& str) { return std::stoi(str); }
+  };
+
+template<> 
+  class MessageBase::ParseTrait<std::string> {
+    public:
+      static std::string convert(const std::string& str) { return str; }
+  };
+
+// specialization of ParseTrait template
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+}  // namespace SocketServer
 
 #endif
