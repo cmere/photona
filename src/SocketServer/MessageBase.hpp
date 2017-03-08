@@ -95,15 +95,21 @@ inline std::ostream& operator<<(std::ostream& os, const MessageBase& msg)
   return os;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+// specialization of printT_ 
+//
 template<>
   inline void MessageBase::printT_<std::string>(std::ostream& os, const std::string& t)
   {
     os << t.size() << '|' << t;
   }
+// 
+// specialization of printT_ 
+///////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// ParseTrait template specialization
-
+// specialization of ParseTrait template
+//
 template<> 
   class MessageBase::ParseTrait<unsigned int> {
     public:
@@ -121,7 +127,7 @@ template<>
     public:
       static std::string convert(const std::string& str) { return str; }
   };
-
+//
 // specialization of ParseTrait template
 ///////////////////////////////////////////////////////////////////////////////////////
 

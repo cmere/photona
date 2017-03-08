@@ -83,7 +83,7 @@ MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, 
   }
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
-  logger << logger.test << "socket=" << socketID << " extract message " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
+  logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
   return numBytesExtracted;
 }
 

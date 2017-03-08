@@ -82,7 +82,7 @@ TCPSocket::handleSelectReadable()
       }
     }
 
-    // save not extracted bytes which are: 1) partial message; 2) buffer is full and decide not read more.
+    // save not extracted bytes which are: 1) partial message; or 2) buffer is full and decide not read more.
     if (numBytes > 0) {
       numBytesNotExtracted_ = numBytes;
       pBytesNotExtracted_.reset(new char[numBytesNotExtracted_]);
