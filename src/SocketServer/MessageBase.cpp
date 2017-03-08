@@ -92,6 +92,7 @@ MessageBase::toBytes(const MessageBase& msg)
 int 
 MessageBase::parseData_(std::istream& is, std::string& str)
 {
+  // e.g. "2|127|hello 0": two fields: "12" and "hello 0"
   char strlen[10];
   is.get(strlen, 10, '|');
   is.get(); // eat '|'
@@ -99,14 +100,10 @@ MessageBase::parseData_(std::istream& is, std::string& str)
   if (len <= 0) {
     return len;
   }
-  else if (len == 1) {
-    char c= is.get();
-    str = std::string(&c, 1);
-  }
   else {
-    std::unique_ptr<char> buf(new char[len+1]);
-    is.get(buf.get(), len+1, '\0');
-    str = std::string(buf.get());
+    std::unique_ptr<char> buf(new char[len]);
+    is.read(buf.get(), len);
+    str = std::string(buf.get(), len);
   }
   return len;
 }
