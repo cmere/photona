@@ -15,9 +15,7 @@ class TCPSocket : public SocketBase
 {
   public:
     TCPSocket();
-    TCPSocket(int fd, const std::string& peerIPAddress, unsigned int peerPort)
-      : SocketBase(fd, peerIPAddress, peerPort) 
-    { }
+    TCPSocket(int fd, const std::string& peerIPAddress, unsigned int peerPort);
 
     virtual ~TCPSocket() { }
     virtual void close();
@@ -34,6 +32,11 @@ class TCPSocket : public SocketBase
     TCPSocket& operator=(const TCPSocket&) = delete;
 
   private:
+    std::unique_ptr<char[]> recvBuffer_;
+    unsigned int recvBufferCapacity_;
+    char* recvBufferPtrBegin_ = nullptr;
+    char* recvBufferPtrEnd_ = nullptr;
+
     std::unique_ptr<char> pBytesNotExtracted_;  // after read(), some bytes are not extracted into messages.
     unsigned int numBytesNotExtracted_ = 0;
 

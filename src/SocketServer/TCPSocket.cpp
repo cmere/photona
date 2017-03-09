@@ -18,7 +18,18 @@ namespace SocketServer
 
 TCPSocket::TCPSocket() 
   : SocketBase(SOCK_STREAM) 
-{ 
+{
+  recvBufferCapacity_ = TCPReadBufferSize;
+  recvBuffer_.reset(new char[recvBufferCapacity_]);
+  recvBufferPtrEnd_ = recvBuffer_.get();
+}
+
+TCPSocket::TCPSocket(int fd, const std::string& peerIPAddress, unsigned int peerPort)
+  : SocketBase(fd, peerIPAddress, peerPort) 
+{
+  recvBufferCapacity_ = TCPReadBufferSize;
+  recvBuffer_.reset(new char[recvBufferCapacity_]);
+  recvBufferPtrEnd_ = recvBuffer_.get();
 }
 
 void 
@@ -31,9 +42,70 @@ TCPSocket::close()
 int
 TCPSocket::handleSelectReadable()
 {
+  logger << "select readable" << endlog;
+  int totalNumBytesRead = 0;
+  while (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
+    unsigned int bufferSize = recvBufferPtrEnd_ == nullptr ? recvBufferCapacity_  : recvBufferCapacity_ - (recvBufferPtrEnd_ - recvBuffer_.get());
+    if (bufferSize == 0) {
+      if (recvBufferPtrBegin_ == recvBuffer_.get()) {
+        // expand buffer
+        unique_ptr<char[]> oldBuffer = move(recvBuffer_);
+        recvBuffer_.reset(new char[recvBufferCapacity_ * 2]);
+        ::memcpy(recvBuffer_.get(), oldBuffer.get(), recvBufferCapacity_);
+        recvBufferPtrBegin_ = recvBuffer_.get();
+        recvBufferPtrEnd_ = recvBuffer_.get() + recvBufferCapacity_;
+        bufferSize = recvBufferCapacity_;
+        recvBufferCapacity_ *= 2;
+        logger << "buffer expand " << recvBufferCapacity_ << endlog;
+      }
+      else {
+        // move data to the begining
+        unsigned int length = recvBufferPtrEnd_ - recvBufferPtrBegin_;
+        ::memcpy(recvBuffer_.get(), recvBufferPtrBegin_, length);
+        recvBufferPtrBegin_ = recvBuffer_.get();
+        recvBufferPtrEnd_ = recvBuffer_.get() + length;
+        bufferSize = recvBufferCapacity_ - length;
+        logger << "buffer move data " << length << endlog;
+      }
+    }
+
+    int numBytesRead = ::read(fd_, recvBufferPtrEnd_, bufferSize);
+    if (numBytesRead == 0) {
+      logger << "socket=" << socketID_ << " read EOF" << endlog;
+      close();
+      return 0;
+    }
+    if (numBytesRead < 0) {
+      if (errno != EAGAIN) {
+        logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
+        close();
+      }
+      break;
+    }
+    if (recvBufferPtrBegin_ == nullptr) {
+      recvBufferPtrBegin_ = recvBuffer_.get();
+    }
+    recvBufferPtrEnd_ += numBytesRead;
+    totalNumBytesRead += numBytesRead;
+    logger << "read bytes " << numBytesRead << " " << totalNumBytesRead << endlog;
+  }
+  return totalNumBytesRead;
+
+
+/*
+  logger << "select readable" << endlog;
   unique_ptr<char> bytes(new char[TCPReadBufferSize]);
   unsigned int bufferSize = TCPReadBufferSize;
   int numBytesRead = 0;
+  int numBytesRead = 1;
+  while (numBytesRead != 0) {
+    numBytesRead = ::read(fd_, bytes.get(), bufferSize);
+    if (numBytesRead < 0 && errno == EAGAIN) {
+    }
+    else {
+      logger << "read bytes " << numBytesRead << endlog;
+    }
+  }
 
   if (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
     // copy left-over from last read().
@@ -50,6 +122,7 @@ TCPSocket::handleSelectReadable()
     }
 
     numBytesRead = ::read(fd_, bytes.get() + numBytesNotExtracted_, bufferSize - numBytesNotExtracted_);
+    logger << "socket=" << socketID_ << " read " << numBytesRead << " bytes" << endlog;
     if (numBytesRead == -1) {
       logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
       close();
@@ -91,6 +164,7 @@ TCPSocket::handleSelectReadable()
   }
 
   return numBytesRead;
+*/
 }
 
 int
@@ -137,6 +211,13 @@ TCPSocket::handleSelectWritable()
       return 0;
     }
 
+    logger << "begin write" << endlog;
+    while (numBytes > 0) {
+      int len = ::write(fd_, pCurrent, numBytes);
+      pCurrent += len;
+      numBytes -= len;
+      logger << "write " << len << " bytes" << endlog;
+    }
     ssize_t numBytesSent = ::write(fd_, pCurrent, numBytes);
     if (numBytesSent == -1) {
       logger << "socket write error. socket=" << socketID_ << " " << strerror(errno) << endlog;
