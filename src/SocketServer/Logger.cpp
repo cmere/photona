@@ -26,7 +26,7 @@ enum LogType {
 };
 
 string LogType_S[] = { " ", " [DEBUG] ", " [TEST] ", " [FATAL] " };
-bool LogType_Enabled[] = { true, false, true, true };
+bool LogType_Enabled[] = { true, true, true, true };
 
 }  // namespace {
 
@@ -41,7 +41,7 @@ Logger::openLog(const std::string& logFilename)
   if (ofs.is_open()){
     ofs.close();
   }
-  ofs.open((LOG_DIR + logFilename).c_str());
+  ofs.open((LOG_DIR + logFilename).c_str(), ios_base::out | ios_base::app);
   logsize = 0;
 
   time_t t = time(0);
