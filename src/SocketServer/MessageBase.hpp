@@ -10,13 +10,15 @@
 namespace SocketServer
 {
 
+class BlockBuffer;
+
 /**
  * Base class for message classes.
  */
 class MessageBase
 {
   public:
-    static std::pair<std::unique_ptr<MessageBase>, unsigned int> fromBytes(const char* bytes, unsigned int length);
+    static int fromBytes(BlockBuffer&, std::shared_ptr<MessageBase>);
     static std::pair<std::unique_ptr<char>, unsigned int> toBytes(const MessageBase&);
 
     virtual ~MessageBase() { }
@@ -74,6 +76,7 @@ class MessageBase
       }
 
   private:
+    static unsigned int getDataField_(BlockBuffer&, std::string&); // throw exceptions
     static int parseData_(std::istream& is, std::string& str); // throw exception
 
   private:

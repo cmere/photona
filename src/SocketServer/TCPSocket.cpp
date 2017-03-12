@@ -8,28 +8,26 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 using namespace std;
-
-const unsigned int TCPReadBufferSize = 8096;
 
 namespace SocketServer
 {
 
+
+static const unsigned int TCPReadBufferSize = 1024*1024;
+static const unsigned int MaxNumberOfRead = 10;
+static const unsigned int MaxInMsgs = 100;
+
 TCPSocket::TCPSocket() 
   : SocketBase(SOCK_STREAM) 
 {
-  recvBufferCapacity_ = TCPReadBufferSize;
-  recvBuffer_.reset(new char[recvBufferCapacity_]);
-  recvBufferPtrEnd_ = recvBuffer_.get();
 }
 
 TCPSocket::TCPSocket(int fd, const std::string& peerIPAddress, unsigned int peerPort)
   : SocketBase(fd, peerIPAddress, peerPort) 
 {
-  recvBufferCapacity_ = TCPReadBufferSize;
-  recvBuffer_.reset(new char[recvBufferCapacity_]);
-  recvBufferPtrEnd_ = recvBuffer_.get();
 }
 
 void 
@@ -43,6 +41,72 @@ int
 TCPSocket::handleSelectReadable()
 {
   logger << "select readable" << endlog;
+  /*
+  char bytes_[TCPReadBufferSize];
+  unsigned int totalNumBytesRead = 0;
+  while (totalNumBytesRead < MaxNumberOfRead * 1024 * 1024) {
+    int numBytesRead = ::read(fd_, bytes_, TCPReadBufferSize);
+    if (numBytesRead == 0) {
+      logger << "socket=" << socketID_ << " read EOF" << endlog;
+      close();
+      break;
+    }
+    else if (numBytesRead < 0) {
+      if (errno != EAGAIN) {
+        logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
+        close();
+      }
+      break;
+    }
+    //vecBuffer_.insert(vecBuffer_.end(), bytes_, bytes_ + numBytesRead);
+    //strBuffer_.append(bytes_, numBytesRead);
+    dequeBuffer_.insert(dequeBuffer_.end(), bytes_, bytes_ + numBytesRead);
+    totalNumBytesRead += numBytesRead;
+    logger << "read bytes " << numBytesRead << " " << totalNumBytesRead << endlog;
+  }
+
+  // parse 
+  //unsigned int numExtractedBytes = totalNumBytesRead / 2;
+  //strBuffer_ = strBuffer_.substr(numExtractedBytes);
+
+  return totalNumBytesRead;
+  */
+
+
+  if (auto i = MessageBuffer::Singleton().getNumBufferedMessages(socketID_)) {
+    if (i >= MaxInMsgs) {
+      logger << "socket=" << socketID_ << " too many messages " << i << ":" << MaxInMsgs << ". stop read." << endlog;
+      return 0;
+    }
+  }
+
+  unsigned int totalNumBytesRead = 0;
+  while (totalNumBytesRead < MaxNumberOfRead * BlockBuffer::getSizePerBlock()) {
+    int numBytesRead = ::read(fd_, blockBuffer_.getSpacePtr(), blockBuffer_.getContinuousSpaceSize());
+    logger << logger.debug << "read bytes " << numBytesRead << endlog;
+    if (numBytesRead == 0) {
+      logger << "socket=" << socketID_ << " read EOF" << endlog;
+      close();
+      break;
+    }
+    if (numBytesRead < 0) {
+      if (errno != EAGAIN) {
+        logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
+        close();
+      }
+      break;
+    }
+    blockBuffer_.resizePush(numBytesRead);
+    totalNumBytesRead += numBytesRead;
+  }
+
+  // parse message and put into buffer
+  while (MessageBuffer::Singleton().extractMessageFromSocket(blockBuffer_, socketID_)) {
+  }
+
+  return totalNumBytesRead;
+
+  /*
   int totalNumBytesRead = 0;
   while (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
     unsigned int bufferSize = recvBufferPtrEnd_ == nullptr ? recvBufferCapacity_  : recvBufferCapacity_ - (recvBufferPtrEnd_ - recvBuffer_.get());
@@ -90,9 +154,9 @@ TCPSocket::handleSelectReadable()
     logger << "read bytes " << numBytesRead << " " << totalNumBytesRead << endlog;
   }
   return totalNumBytesRead;
+  */
 
-
-/*
+  /*
   logger << "select readable" << endlog;
   unique_ptr<char> bytes(new char[TCPReadBufferSize]);
   unsigned int bufferSize = TCPReadBufferSize;
@@ -106,7 +170,10 @@ TCPSocket::handleSelectReadable()
       logger << "read bytes " << numBytesRead << endlog;
     }
   }
+  return numBytesRead;
+  */
 
+  /*
   if (MessageBuffer::Singleton().shouldReadMoreOnSocket(socketID_)) {
     // copy left-over from last read().
     if (numBytesNotExtracted_ > 0) {

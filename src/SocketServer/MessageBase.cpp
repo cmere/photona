@@ -1,5 +1,6 @@
 #include "include/first.hpp"
 #include "MessageBase.hpp"
+#include "BlockBuffer.hpp"
 #include "MessageEcho.hpp"
 #include "MessageTest.hpp"
 
@@ -8,85 +9,124 @@ using namespace std;
 namespace SocketServer
 {
 
-std::pair<std::unique_ptr<MessageBase>, unsigned int>
-MessageBase::fromBytes(const char* bytes, unsigned int length)
+int
+MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase> pMsg)
 {
-  unique_ptr<MessageBase> pMsg;
-  unsigned int totalLength = 0;
-
-  if (length > 0) {
-    istringstream iss(string(bytes, length));
-
-    // peek message length and type
-    int type = 0;
-    try {
-      string strMsgLen;
-      ;
-      if (MessageBase::parseData_(iss, strMsgLen) <= 0) {
-        logger << "error: failed to parse message length." << endlog;
-        return make_pair(unique_ptr<MessageBase>(nullptr), length);
-      }
-
-      // to calculate totalLength, e.g. "2|12abcdefghijkl"  message length is 12, total length is 16.
-      totalLength = to_string(strMsgLen.size()).size() + 1 + strMsgLen.size() + stoul(strMsgLen);  
-      if (length < totalLength) {
-        logger << logger.test << "partial message " << length << " : " << totalLength<< endlog;
-        return make_pair(unique_ptr<MessageBase>(nullptr), 0);
-      }
-
-      string strType;
-      if (MessageBase::parseData_(iss, strType) <= 0) {
-        logger << "error: failed to parse message type." << endlog;
-        return make_pair(unique_ptr<MessageBase>(nullptr), length);
-      };
-      iss.seekg(ios_base::beg);
-      type = stoi(strType);
-    }
-    catch (...) {
-      logger << "error: failed to parse message type." << endlog;
-      return make_pair(unique_ptr<MessageBase>(nullptr), length);
-    }
-
-    if (iss) {
-      if (type == TEcho) {
-        pMsg.reset(new MessageEcho());
-        iss >> *pMsg;
-      }
-      else if (type == TTest) {
-        pMsg.reset(new MessageTest());
-        iss >> *pMsg;
-      }
-      else {
-        pMsg.reset(nullptr);
-        logger << logger.test << "error: unknown message type " << type << endlog;
-      }
-    }
-
-    if (!iss) {
-      pMsg.reset(nullptr);
-      logger << "error: failed to create message from bytes. type=" << type << endlog;
-    }
+  unsigned int buflen = buffer.getTotalDataSize();
+  if (buflen == 0) {
+    return 0;
   }
 
-  return make_pair(move(pMsg), totalLength);
+  unsigned int msglen = 0;
+  // see if buffer hold a whole message (length)
+  try {
+    string strMsgLen;
+    unsigned int fieldNumBytes = MessageBase::getDataField_(buffer, strMsgLen);
+    if (fieldNumBytes == 0) {
+      logger << "error: failed to parse message length. clear buffer." << endlog;
+      buffer.clearAll();
+      return -1;
+    }
+    msglen = stoul(strMsgLen);
+
+    // to calculate totalLength, e.g. "2|12abcdefghijkl"  message length is 12, total length is 16.
+    unsigned int totalLength = to_string(strMsgLen.size()).size() + 1 + strMsgLen.size() + msglen;  
+    if (buflen < totalLength) {
+      logger << logger.test << "partial message " << buflen << " v.s. " << totalLength << endlog;
+      return 0;  // partial message.
+    }
+    buffer.resizePop(fieldNumBytes);
+  }
+  catch (...) {
+    logger << "error: failed to get message length. clear buffer." << endlog;
+    buffer.clearAll();
+    return -1;
+  }
+
+  int type = 0;
+  // get message type
+  try {
+    string strType;
+    if (MessageBase::getDataField_(buffer, strType) <= 0) {
+      logger << "error: failed to parse message type." << endlog;
+      buffer.resizePop(msglen);
+      return -1;
+    };
+    type = stoi(strType);
+  }
+  catch (...) {
+    logger << "error: failed to get message type. clear message." << endlog;
+    buffer.resizePop(msglen);
+    return -1;
+  }
+
+  // create Message
+  if (type == TEcho) {
+    pMsg.reset(new MessageEcho());
+    //iss >> *pMsg;
+  }
+  else if (type == TTest) {
+    pMsg.reset(new MessageTest());
+    //iss >> *pMsg;
+  }
+  else {
+    logger << logger.test << "error: unknown message type " << type << endlog;
+  }
+
+  if ("parse error") {
+    pMsg.reset();
+  }
+
+  buffer.resizePop(msglen);
+  return msglen;
 }
 
 std::pair<unique_ptr<char>, unsigned int> 
 MessageBase::toBytes(const MessageBase& msg)
 {
+  logger << "1" << endlog;
   ostringstream oss;
+  logger << "2" << endlog;
   oss << msg;
+  logger << "3" << endlog;
   unsigned int len = oss.str().size();
+  logger << "4" << endlog;
 
   // put the total length at the begining. e.g. 10|0123456789
   ostringstream ossHead;
+  logger << "5" << endlog;
   printT_(ossHead, len);
+  logger << "6" << endlog;
   unsigned int headLen = ossHead.str().size();
+  logger << "7" << endlog;
   unique_ptr<char> bytes(new char[headLen + len]);
+  logger << "8" << endlog;
   ::memcpy(bytes.get(), ossHead.str().c_str(), headLen);
-  ::memcpy(bytes.get() + headLen, oss.str().c_str(), len);
+  logger << "9" << endlog;
+  char* a = bytes.get() + headLen;
+  logger << "9" << endlog;
+  const string& tmp = oss.str();
+  logger << "10" << endlog;
+  const char* b = tmp.c_str();
+  logger << "11" << endlog;
+  ::memcpy(a, b, len);
+  logger << "12" << endlog;
 
   return make_pair(move(bytes), headLen + len);
+}
+
+unsigned int 
+MessageBase::getDataField_(BlockBuffer& buffer, std::string& strdata)
+{
+  // "length|data",  e.g. "2|127|hello 0": two fields: "12" and "hello 0"
+  string strlen;
+  if (buffer.getline(strlen, '|')) {
+    unsigned int len = std::stoul(strlen); // throw exceptions
+    if (buffer.getdata(strdata, len) == len) {
+      return strlen.size() + 1 + strdata.size(); // return total bytes for this field.
+    }
+  }
+  return 0;
 }
 
 int 

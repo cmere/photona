@@ -10,6 +10,8 @@
 namespace SocketServer
 {
 
+class BlockBuffer;
+
 /**
  * Input/output buffer for messages. All in/out socket share this one quque (FIFO).
  *
@@ -22,9 +24,9 @@ class MessageBuffer
     static MessageBuffer& Singleton();
 
     // extract ONE message, put in queue, return number of bytes extracted.
-    unsigned int extractMessageFromSocket(const char*, unsigned int length, const SocketID&);
+    unsigned int extractMessageFromSocket(BlockBuffer&, const SocketID&);
 
-    bool shouldReadMoreOnSocket(const SocketID&) const;
+    unsigned int getNumBufferedMessages(const SocketID&) const;
 
     bool hasMessageToSend(const SocketID&) const;
 

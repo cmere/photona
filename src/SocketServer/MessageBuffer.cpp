@@ -1,5 +1,6 @@
 #include "include/first.hpp"
 #include "MessageBuffer.hpp"
+#include "BlockBuffer.hpp"
 
 #include <unistd.h>
 
@@ -7,8 +8,6 @@ using namespace std;
 
 namespace SocketServer
 {
-
-static  unsigned int MaxInMsgs = 100;
 
 MessageBuffer&
 MessageBuffer::Singleton()
@@ -67,17 +66,15 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
 }
 
 unsigned int
-MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, const SocketID& socketID)
+MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID& socketID)
 {
-  auto r = MessageBase::fromBytes(bytes, length);
   shared_ptr<MessageBase> pMsg;
-  pMsg.reset(r.first.release());
-  int numBytesExtracted = r.second;
+  int numBytesExtracted = MessageBase::fromBytes(blockBuffer, pMsg);
   if (!pMsg) {
     if (numBytesExtracted > 0) {
-      logger << logger.test << "socket=" << socketID << " failed to extract a message."
-             << " length=" << length << " [" << string(bytes, min((int)length, 100)) << "...]"
-             << " " << numBytesExtracted << " bytes discarded." << endlog;
+      //logger << logger.test << "socket=" << socketID << " failed to extract a message."
+      //       << " length=" << length << " [" << string(bytes, min((int)length, 100)) << "...]"
+      //       << " " << numBytesExtracted << " bytes discarded." << endlog;
     }
     return numBytesExtracted;
   }
@@ -87,15 +84,14 @@ MessageBuffer::extractMessageFromSocket(const char* bytes, unsigned int length, 
   return numBytesExtracted;
 }
 
-bool 
-MessageBuffer::shouldReadMoreOnSocket(const SocketID& socketID) const
+unsigned int
+MessageBuffer::getNumBufferedMessages(const SocketID& socketID) const
 {
   const auto& inMsgs = inMsgBySocketID_.find(socketID);
-  if (inMsgs != inMsgBySocketID_.end() && inMsgs->second.size() >= MaxInMsgs) {
-    logger << logger.debug << "too many incoming messages socketID=" << socketID << " threadhold=" << MaxInMsgs << endlog;
-    return false;
+  if (inMsgs != inMsgBySocketID_.end()) {
+    return inMsgs->second.size();
   }
-  return true;
+  return 0;
 }
 
 }
