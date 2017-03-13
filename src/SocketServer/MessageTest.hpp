@@ -13,16 +13,17 @@ class MessageTest : public MessageBase
 
     virtual std::string getName() const { return "MessageTest"; }
 
-    void setData(const std::string& data) { data_ = data; }
+    void setData(const char* data, unsigned int length);
     void setMessageType(int testType) { type_ = testType; }
     void setSendTruncatedData() { isTestTruncatedData_ = true; }
 
   protected:
     virtual void print_(std::ostream&) const;
     virtual void parse_(std::istream&);
+    virtual bool parse_(BlockBuffer&, unsigned int& offset);
 
   private:
-    std::string data_;
+    std::unique_ptr<char> data_;
     bool isTestTruncatedData_ = false;
 };
 

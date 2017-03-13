@@ -18,6 +18,7 @@ class MessageEcho : public MessageBase
   protected:
     virtual void print_(std::ostream&) const;
     virtual void parse_(std::istream&);
+    virtual bool parse_(BlockBuffer&, unsigned int& offset);
 
   private:
     std::string content_;

@@ -112,27 +112,28 @@ BlockBuffer::Block::resizePop(unsigned int numBytes)
 }
 
 unsigned int
-BlockBuffer::getdata(string& str, unsigned int count) const
+BlockBuffer::getdata(string& str, unsigned int count, unsigned int offset) const
 {
   if (count == 0) {
     return 0;
   }
   unique_ptr<char> buf(new char[count]);
-  unsigned int numPopBytes = getdata(buf.get(), count);
+  unsigned int numPopBytes = getdata(buf.get(), count, offset);
   str.assign(buf.get(), numPopBytes);
   return numPopBytes;
 }
 
 unsigned int
-BlockBuffer::getdata(char* dest, unsigned int count) const
+BlockBuffer::getdata(char* dest, unsigned int count, unsigned int offset) const
 {
   unsigned int totalPopped = 0;
   Block* block = currDataBlock_.get();
   while (count > 0) {
-    unsigned int numPopBytes = block->getdata(dest, count);
+    unsigned int numPopBytes = block->getdata(dest, count, offset);
     dest += numPopBytes;
     count -= numPopBytes;
     totalPopped += numPopBytes;
+    offset = 0;
     if (block->next_) {
       block = block->next_.get();
     }
@@ -148,24 +149,25 @@ BlockBuffer::getdata(char* dest, unsigned int count) const
 }
 
 unsigned int
-BlockBuffer::Block::getdata(char* dest, unsigned int count) const
+BlockBuffer::Block::getdata(char* dest, unsigned int count, unsigned int offset) const
 {
   unsigned int dataSize = getDataSize();
-  if (dataSize > count) {
-    memcpy(dest, pData_, count);
+  if (dataSize > count + offset) {
+    memcpy(dest, pData_ + offset, count);
     return count;
   }
   else {
-    memcpy(dest, pData_, dataSize);
-    return dataSize;
+    memcpy(dest, pData_ + offset, dataSize - offset);
+    return dataSize - offset;
   }
 }
 
 bool
-BlockBuffer::getline(std::string& dest, char delim) const
+BlockBuffer::getline(std::string& dest, char delim, unsigned int offset) const
 {
   Block* block = currDataBlock_.get();
-  while (!block->getline(dest, delim)) {
+  while (!block->getline(dest, delim, offset)) {
+    offset = 0;
     if (block->next_) {
       block = block->next_.get();
     }
@@ -177,14 +179,14 @@ BlockBuffer::getline(std::string& dest, char delim) const
 }
 
 bool
-BlockBuffer::Block::getline(std::string& dest, char delim) const
+BlockBuffer::Block::getline(std::string& dest, char delim, unsigned int offset) const
 {
   if (isEmpty()) {
     return false;
   }
 
   char c = 0;
-  char* p = pData_;
+  char* p = pData_ + offset;
   while ((c = *p++) != delim) {
     dest.push_back(c);
     if (p == pSpace_) {

@@ -36,9 +36,9 @@ class BlockBuffer
 
     void clearAll();
 
-    unsigned int getdata(std::string& str, unsigned int count) const;
-    unsigned int getdata(char* dest, unsigned int count) const;
-    bool getline(std::string& dest, char delim) const;
+    unsigned int getdata(std::string& str, unsigned int count, unsigned int offset) const;
+    unsigned int getdata(char* dest, unsigned int count, unsigned int offset) const;
+    bool getline(std::string& dest, char delim, unsigned int offset) const;
 
   private:
     BlockBuffer(const BlockBuffer&) = delete;
@@ -61,8 +61,8 @@ class BlockBuffer
         unsigned int resizePush(unsigned int numBytes);
         unsigned int resizePop(unsigned int numBytes);
 
-        unsigned int getdata(char* dest, unsigned int count) const;
-        bool getline(std::string& dest, char delim) const;
+        unsigned int getdata(char* dest, unsigned int count, unsigned int offset) const;
+        bool getline(std::string& dest, char delim, unsigned int offset) const;
 
       private:
         Block(const Block&) = delete;

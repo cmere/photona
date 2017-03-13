@@ -10,7 +10,7 @@ namespace SocketServer
 {
 
 int
-MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase> pMsg)
+MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase>& pMsg)
 {
   unsigned int buflen = buffer.getTotalDataSize();
   if (buflen == 0) {
@@ -18,24 +18,24 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase> pMsg)
   }
 
   unsigned int msglen = 0;
+  unsigned int offset = 0;
   // see if buffer hold a whole message (length)
   try {
-    string strMsgLen;
-    unsigned int fieldNumBytes = MessageBase::getDataField_(buffer, strMsgLen);
+    string strMsgBodyLen;
+    unsigned int fieldNumBytes = MessageBase::getDataField_(buffer, strMsgBodyLen, offset);
     if (fieldNumBytes == 0) {
       logger << "error: failed to parse message length. clear buffer." << endlog;
       buffer.clearAll();
       return -1;
     }
-    msglen = stoul(strMsgLen);
+    unsigned int msgBodyLen = stoul(strMsgBodyLen);
 
-    // to calculate totalLength, e.g. "2|12abcdefghijkl"  message length is 12, total length is 16.
-    unsigned int totalLength = to_string(strMsgLen.size()).size() + 1 + strMsgLen.size() + msglen;  
-    if (buflen < totalLength) {
-      logger << logger.test << "partial message " << buflen << " v.s. " << totalLength << endlog;
+    // to calculate total length, e.g. "2|12abcdefghijkl"  message body length is 12, total length is 16.
+    msglen = to_string(strMsgBodyLen.size()).size() + 1 + strMsgBodyLen.size() + msgBodyLen;
+    if (buflen < msglen) {
+      logger << logger.test << "partial message " << buflen << " v.s. " << msglen << endlog;
       return 0;  // partial message.
     }
-    buffer.resizePop(fieldNumBytes);
   }
   catch (...) {
     logger << "error: failed to get message length. clear buffer." << endlog;
@@ -47,12 +47,14 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase> pMsg)
   // get message type
   try {
     string strType;
-    if (MessageBase::getDataField_(buffer, strType) <= 0) {
+    unsigned int typeFieldBytes = MessageBase::getDataField_(buffer, strType, offset);
+    if (typeFieldBytes <= 0) {
       logger << "error: failed to parse message type." << endlog;
       buffer.resizePop(msglen);
       return -1;
     };
     type = stoi(strType);
+    offset -= typeFieldBytes;  // put back
   }
   catch (...) {
     logger << "error: failed to get message type. clear message." << endlog;
@@ -63,18 +65,21 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase> pMsg)
   // create Message
   if (type == TEcho) {
     pMsg.reset(new MessageEcho());
-    //iss >> *pMsg;
   }
   else if (type == TTest) {
     pMsg.reset(new MessageTest());
-    //iss >> *pMsg;
   }
   else {
     logger << logger.test << "error: unknown message type " << type << endlog;
+    buffer.resizePop(msglen);
+    return -1;
   }
 
-  if ("parse error") {
+  if (!pMsg->parse_(buffer, offset)) {
+    logger << "error: parse error. clear message. " << endlog;
     pMsg.reset();
+    buffer.resizePop(msglen);
+    return -1;
   }
 
   buffer.resizePop(msglen);
@@ -115,15 +120,33 @@ MessageBase::toBytes(const MessageBase& msg)
   return make_pair(move(bytes), headLen + len);
 }
 
+unsigned int
+MessageBase::peekDataFieldLength_(BlockBuffer& buffer, unsigned int& offset)
+{
+  try {
+    string strlen;
+    if (buffer.getline(strlen, '|', offset)) {
+      unsigned int len = std::stoul(strlen); // throw exceptions
+      return len;
+    }
+  }
+  catch (...) {
+    return 0;
+  }
+  return 0;
+}
+
 unsigned int 
-MessageBase::getDataField_(BlockBuffer& buffer, std::string& strdata)
+MessageBase::getDataField_(BlockBuffer& buffer, std::string& strdata, unsigned int& offset)
 {
   // "length|data",  e.g. "2|127|hello 0": two fields: "12" and "hello 0"
   string strlen;
-  if (buffer.getline(strlen, '|')) {
+  if (buffer.getline(strlen, '|', offset)) {
     unsigned int len = std::stoul(strlen); // throw exceptions
-    if (buffer.getdata(strdata, len) == len) {
-      return strlen.size() + 1 + strdata.size(); // return total bytes for this field.
+    if (buffer.getdata(strdata, len, offset + strlen.size() + 1) == len) {
+      unsigned int fieldBytes = strlen.size() + 1 + len; // return total bytes for this field.
+      offset += fieldBytes;
+      return fieldBytes;
     }
   }
   return 0;
@@ -146,6 +169,12 @@ MessageBase::parseData_(std::istream& is, std::string& str)
     str = std::string(buf.get(), len);
   }
   return len;
+}
+
+bool
+MessageBase::parse_(BlockBuffer& buffer, unsigned int& offset)
+{
+  return parseT_(buffer, type_, "type", offset);
 }
 
 void

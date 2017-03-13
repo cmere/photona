@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
   shared_ptr<TCPSocket> pSockets[N];
   FDSelector selector;
 
+  /*
   // create N socket, send one MessageEcho on each socket.
   for (unsigned int i = 0; i < N; ++i) {
     pSockets[i].reset(new TCPSocket());
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
     selector.addToReadSelectable(pSockets[i]);
     selector.addToWriteSelectable(pSockets[i]);
   }
+  */
 
   // send MessageTest 
   {
@@ -60,6 +62,7 @@ int main(int argc, char *argv[])
 
     // send message with unknow type, server should ignore msg.
     auto pMsg = make_shared<MessageTest>();
+    /*
     pMsg->setData("Test unknown message type");
     pMsg->setMessageType(-1);
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
@@ -72,6 +75,12 @@ int main(int argc, char *argv[])
     // send normal data, server should receive data.
     pMsg = make_shared<MessageTest>();
     pMsg->setData("0123456789");
+    MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
+    */
+
+    // send data with '\0'.
+    pMsg = make_shared<MessageTest>();
+    pMsg->setData(string(100*1024*1024, '\0').c_str(), 100*1024*1024);  // 1Mbytes of '\0'
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
   }
 

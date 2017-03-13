@@ -71,10 +71,8 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
   shared_ptr<MessageBase> pMsg;
   int numBytesExtracted = MessageBase::fromBytes(blockBuffer, pMsg);
   if (!pMsg) {
-    if (numBytesExtracted > 0) {
-      //logger << logger.test << "socket=" << socketID << " failed to extract a message."
-      //       << " length=" << length << " [" << string(bytes, min((int)length, 100)) << "...]"
-      //       << " " << numBytesExtracted << " bytes discarded." << endlog;
+    if (numBytesExtracted < 0) {
+      logger << logger.test << "socket=" << socketID << " failed to extract a message." << endlog;
     }
     return numBytesExtracted;
   }
