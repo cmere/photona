@@ -112,56 +112,6 @@ MessageBase::toBytes(BlockBuffer& buffer, const MessageBase& msg)
   return count;
 }
 
-std::pair<unique_ptr<char>, unsigned int> 
-MessageBase::toBytes(const MessageBase& msg)
-{
-  logger << "1" << endlog;
-  ostringstream oss;
-  logger << "2" << endlog;
-  oss << msg;
-  logger << "3" << endlog;
-  unsigned int len = oss.str().size();
-  logger << "4" << endlog;
-
-  // put the total length at the begining. e.g. 10|0123456789
-  ostringstream ossHead;
-  logger << "5" << endlog;
-  printT_(ossHead, len);
-  logger << "6" << endlog;
-  unsigned int headLen = ossHead.str().size();
-  logger << "7" << endlog;
-  unique_ptr<char> bytes(new char[headLen + len]);
-  logger << "8" << endlog;
-  ::memcpy(bytes.get(), ossHead.str().c_str(), headLen);
-  logger << "9" << endlog;
-  char* a = bytes.get() + headLen;
-  logger << "9" << endlog;
-  const string& tmp = oss.str();
-  logger << "10" << endlog;
-  const char* b = tmp.c_str();
-  logger << "11" << endlog;
-  ::memcpy(a, b, len);
-  logger << "12" << endlog;
-
-  return make_pair(move(bytes), headLen + len);
-}
-
-unsigned int
-MessageBase::peekDataFieldLength_(BlockBuffer& buffer, unsigned int& offset)
-{
-  try {
-    string strlen;
-    if (buffer.getline(strlen, '|', offset)) {
-      unsigned int len = std::stoul(strlen); // throw exceptions
-      return len;
-    }
-  }
-  catch (...) {
-    return 0;
-  }
-  return 0;
-}
-
 unsigned int 
 MessageBase::getDataField_(BlockBuffer& buffer, std::string& strdata, unsigned int& offset)
 {
@@ -178,43 +128,10 @@ MessageBase::getDataField_(BlockBuffer& buffer, std::string& strdata, unsigned i
   return 0;
 }
 
-int 
-MessageBase::parseData_(std::istream& is, std::string& str)
-{
-  // e.g. "2|127|hello 0": two fields: "12" and "hello 0"
-  char strlen[10];
-  is.get(strlen, 10, '|');
-  is.get(); // eat '|'
-  int len = std::stoi(strlen);
-  if (len <= 0) {
-    return len;
-  }
-  else {
-    std::unique_ptr<char> buf(new char[len]);
-    is.read(buf.get(), len);
-    str = std::string(buf.get(), len);
-  }
-  return len;
-}
-
 bool
 MessageBase::parse_(BlockBuffer& buffer, unsigned int& offset)
 {
   return parseT_(buffer, type_, "type", offset);
-}
-
-void
-MessageBase::parse_(istream& is)
-{
-  unsigned int numBytes;
-  parseT_(is, numBytes, "Field0");
-  parseT_(is, type_, "type");
-}
-
-void
-MessageBase::print_(ostream& os) const
-{
-  printT_(os, type_);
 }
 
 unsigned int
@@ -283,6 +200,21 @@ unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::s
   return lenstr.size() + 1 + t.size();
 }
 
+unsigned int
+MessageBase::peekDataFieldLength_(BlockBuffer& buffer, unsigned int& offset)
+{
+  try {
+    string strlen;
+    if (buffer.getline(strlen, '|', offset)) {
+      unsigned int len = std::stoul(strlen); // throw exceptions
+      return len;
+    }
+  }
+  catch (...) {
+    return 0;
+  }
+  return 0;
+}
 
 } // namespace SocketServer
 

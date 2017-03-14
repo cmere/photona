@@ -13,19 +13,6 @@ MessageTest::setData(const char* data, unsigned int length)
   memcpy(data_.get(), data, length);
 }
 
-void
-MessageTest::print_(ostream& os) const
-{
-  MessageBase::print_(os);
-  // send "ab|c" as data.
-  if (isTestTruncatedData_) {
-    os << "ab|c"; 
-  }
-  else {
-    printT_(os, string(data_.get(), 100*1024*1024));
-  }
-}
-
 unsigned int
 MessageTest::print_(BlockBuffer& buffer, unsigned int& offset) const
 {
@@ -59,13 +46,6 @@ MessageTest::print_(BlockBuffer& buffer, unsigned int& offset) const
     }
   }
   return bytesPrinted;
-}
-
-void
-MessageTest::parse_(istream& is)
-{
-  MessageBase::parse_(is);
- // parseT_(is, data_, "data");
 }
 
 bool

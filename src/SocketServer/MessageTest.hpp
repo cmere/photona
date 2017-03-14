@@ -18,8 +18,6 @@ class MessageTest : public MessageBase
     void setSendTruncatedData() { isTestTruncatedData_ = true; }
 
   protected:
-    virtual void print_(std::ostream&) const;
-    virtual void parse_(std::istream&);
     virtual bool parse_(BlockBuffer&, unsigned int& offset);
     virtual unsigned int print_(BlockBuffer&, unsigned int& offset) const;
 

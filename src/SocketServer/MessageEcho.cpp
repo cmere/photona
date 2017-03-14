@@ -6,18 +6,10 @@ using namespace std;
 
 namespace SocketServer {
 
-void
-MessageEcho::print_(ostream& os) const
+unsigned int
+MessageEcho::print_(BlockBuffer&, unsigned int& offset) const
 {
-  MessageBase::print_(os);
-  printT_(os, content_);
-}
-
-void
-MessageEcho::parse_(istream& is)
-{
-  MessageBase::parse_(is);
-  parseT_(is, content_, "content");
+  return 0;
 }
 
 bool

@@ -55,6 +55,7 @@ UDPSocket::handleSelectReadable()
 int 
 UDPSocket::handleSelectWritable()
 {
+  /*
   auto msgAndPeer = UDPMessageBuffer::Singleton().popMessageToSend(socketID_);
   if (get<0>(msgAndPeer) == 0) {
     logger << "error: socket " << socketID_ << " has no message to send" << endlog;
@@ -79,6 +80,8 @@ UDPSocket::handleSelectWritable()
   }
 
   return sentSize;
+  */
+  return 0;
 }
 
 } // namespace SocketServer

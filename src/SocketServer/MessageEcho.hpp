@@ -16,8 +16,7 @@ class MessageEcho : public MessageBase
     void setContent(const std::string& content) { content_ = content; }
 
   protected:
-    virtual void print_(std::ostream&) const;
-    virtual void parse_(std::istream&);
+    virtual unsigned int print_(BlockBuffer&, unsigned int& offset) const;
     virtual bool parse_(BlockBuffer&, unsigned int& offset);
 
   private:
