@@ -86,6 +86,17 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase>& pMsg)
   return msglen;
 }
 
+unsigned int
+MessageBase::toBytes(BlockBuffer& buffer, const MessageBase& msg)
+{
+  unsigned int offset = 0;
+  unsigned int count = msg.print_(buffer, offset);
+  if (count > 0) {
+    buffer.resizePush(count);
+  }
+  return count;
+}
+
 std::pair<unique_ptr<char>, unsigned int> 
 MessageBase::toBytes(const MessageBase& msg)
 {
@@ -191,4 +202,66 @@ MessageBase::print_(ostream& os) const
   printT_(os, type_);
 }
 
+unsigned int
+MessageBase::print_(BlockBuffer& buffer, unsigned int& offset) const
+{
+  return printT_(buffer, type_, offset);
 }
+
+template<>
+bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string& fieldName, unsigned int& offset)
+{
+  try {
+    char* dest = &t;
+    // "length|data",  e.g. "2|127|hello 0": two fields: "12" and "hello 0"
+    std::string strlen;
+    if (buffer.getline(strlen, '|', offset)) {
+      unsigned int len = std::stoul(strlen); // throw exceptions
+      if (buffer.getdata(dest, len, offset + strlen.size() + 1) == len) {
+        unsigned int fieldBytes = strlen.size() + 1 + len; // return total bytes for this field.
+        offset += fieldBytes;
+        return true;
+      }
+    }
+    logger << getName() << " failed to parse field " << fieldName << endlog;
+    return false;
+  }
+  catch (...) {
+    logger << getName() << " failed to parse field " << fieldName << endlog;
+    return false;
+  }
+}
+
+template<>
+unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, unsigned int& offset)
+{
+  auto lenstr = std::to_string(t.size());
+  unsigned int count = 0;
+  if ((count = buffer.append(lenstr.c_str(), lenstr.size(), offset)) == lenstr.size()) {
+      offset += count;
+  }
+  else {
+    return 0;
+  }
+
+  const char c = '|';
+  if ((count = buffer.append(&c, 1, offset)) == 1) {
+      offset += count;
+  }
+  else {
+    return 0;
+  }
+  
+  if ((count = buffer.append(t.c_str(), t.size(), offset)) == t.size()) {
+    offset += count;
+  }
+  else {
+    return 0;
+  }
+
+  return lenstr.size() + 1 + t.size();
+}
+
+
+} // namespace SocketServer
+

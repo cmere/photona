@@ -39,7 +39,8 @@ class TCPSocket : public SocketBase
     std::vector<char> vecBuffer_;
     std::deque<char> dequeBuffer_;
 
-    BlockBuffer blockBuffer_;
+    BlockBuffer recvBuffer_;
+    BlockBuffer sendBuffer_;
 
     std::unique_ptr<char> pBytesNotExtracted_;  // after read(), some bytes are not extracted into messages.
     unsigned int numBytesNotExtracted_ = 0;

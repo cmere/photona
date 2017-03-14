@@ -6,10 +6,11 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include "BlockBuffer.hpp"
 
 namespace SocketServer
 {
+
+class BlockBuffer;
 
 /**
  * Base class for message classes.
@@ -18,6 +19,7 @@ class MessageBase
 {
   public:
     static int fromBytes(BlockBuffer&, std::shared_ptr<MessageBase>&);
+    static unsigned int toBytes(BlockBuffer&, const MessageBase&);
     static std::pair<std::unique_ptr<char>, unsigned int> toBytes(const MessageBase&);
 
     virtual ~MessageBase() { }
@@ -45,6 +47,7 @@ class MessageBase
     { }
 
     virtual bool parse_(BlockBuffer&, unsigned int& offset);
+    virtual unsigned int print_(BlockBuffer&, unsigned int& offset) const;
     virtual void parse_(std::istream&);
     virtual void print_(std::ostream&) const;
 
@@ -53,6 +56,13 @@ class MessageBase
       {
         std::string s = std::to_string(t);
         os << s.size() << '|' << s;
+      }
+
+    template<class T>
+      static unsigned int printT_(BlockBuffer& buffer, const T& t, unsigned int& offset)
+      {
+        std::string s = std::to_string(t);
+        return printT_(buffer, s, offset);
       }
 
     template<class T>
@@ -120,29 +130,11 @@ inline std::ostream& operator<<(std::ostream& os, const MessageBase& msg)
   return os;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+// specialization of parseT_ 
 template<>
-  inline bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string& fieldName, unsigned int& offset)
-  {
-    try {
-      char* dest = &t;
-      // "length|data",  e.g. "2|127|hello 0": two fields: "12" and "hello 0"
-      std::string strlen;
-      if (buffer.getline(strlen, '|', offset)) {
-        unsigned int len = std::stoul(strlen); // throw exceptions
-        if (buffer.getdata(dest, len, offset + strlen.size() + 1) == len) {
-          unsigned int fieldBytes = strlen.size() + 1 + len; // return total bytes for this field.
-          offset += fieldBytes;
-          return true;
-        }
-      }
-      logger << getName() << " failed to parse field " << fieldName << endlog;
-      return false;
-    }
-    catch (...) {
-      logger << getName() << " failed to parse field " << fieldName << endlog;
-      return false;
-    }
-  }
+  bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string& fieldName, unsigned int& offset);
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // specialization of printT_ 
 //
@@ -151,6 +143,10 @@ template<>
   {
     os << t.size() << '|' << t;
   }
+
+template<>
+  unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, unsigned int& offset);
+
 // 
 // specialization of printT_ 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +169,7 @@ template<>
 template<> 
   class MessageBase::ParseTrait<std::string> {
     public:
-      static std::string convert(std::string& str) { return move(str); }
+      static std::string convert(std::string& str) { return str; }
   };
 //
 // specialization of ParseTrait template

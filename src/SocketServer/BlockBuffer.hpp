@@ -40,6 +40,8 @@ class BlockBuffer
     unsigned int getdata(char* dest, unsigned int count, unsigned int offset) const;
     bool getline(std::string& dest, char delim, unsigned int offset) const;
 
+    unsigned int append(const char*, unsigned int count, unsigned int offset);
+
   private:
     BlockBuffer(const BlockBuffer&) = delete;
     BlockBuffer& operator=(const BlockBuffer&) = delete;

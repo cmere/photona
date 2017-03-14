@@ -21,6 +21,7 @@ class MessageTest : public MessageBase
     virtual void print_(std::ostream&) const;
     virtual void parse_(std::istream&);
     virtual bool parse_(BlockBuffer&, unsigned int& offset);
+    virtual unsigned int print_(BlockBuffer&, unsigned int& offset) const;
 
   private:
     std::unique_ptr<char> data_;

@@ -26,6 +26,39 @@ MessageTest::print_(ostream& os) const
   }
 }
 
+unsigned int
+MessageTest::print_(BlockBuffer& buffer, unsigned int& offset) const
+{
+  unsigned int bytesPrinted = 0;
+  unsigned int count = 0;
+  if ((count = MessageBase::print_(buffer, offset)) == 0) {
+    return 0;
+  }
+  else {
+    bytesPrinted += count;
+  }
+
+  // send "ab|c" as data.
+  if (isTestTruncatedData_) {
+    if ((count = printT_(buffer, string("ab|c"), offset)) == 0) {
+      return 0;
+    }
+    else {
+      bytesPrinted += count;
+    }
+  }
+  else {
+    string s(data_.get(), 100*1024*1024);
+    if ((count = printT_(buffer, s, offset)) == 0) {
+      return 0;
+    }
+    else {
+      bytesPrinted += count;
+    }
+  }
+  return bytesPrinted;
+}
+
 void
 MessageTest::parse_(istream& is)
 {

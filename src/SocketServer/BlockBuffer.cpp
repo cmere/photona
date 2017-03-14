@@ -196,6 +196,49 @@ BlockBuffer::Block::getline(std::string& dest, char delim, unsigned int offset) 
   return true;
 }
 
+unsigned int
+BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
+{
+  if (count == 0) {
+    return 0;
+  }
 
+  unsigned int bytesAppended = count;
+
+  // find block starting from offset
+  Block* spaceBlock = currSpaceBlock_;
+  while (spaceBlock->getSpaceSize() <= offset) {
+    offset -= spaceBlock->getSpaceSize();
+    spaceBlock = spaceBlock->next_.get();
+    if (!spaceBlock) {
+      // append() should be called sequentially: append(Field_1); append(Field_2); ...
+      logger << "error: space block should not be null in appending. " << count << " " << offset << endlog;
+      return 0;
+    }
+  }
+
+  char* pSpace = spaceBlock->pSpace_ + offset;
+  // start writing
+  while (count > 0) {
+    unsigned int availableSpaces = spaceBlock->pEnd_ - pSpace;
+    if (availableSpaces > count) {
+      memcpy(pSpace, data, count);
+      count = 0;
+      break;
+    }
+    else {
+      memcpy(pSpace, data, availableSpaces);
+      count -= availableSpaces;
+      // create a new block
+      unique_ptr<Block> newBlock(new Block());
+      spaceBlock->next_ = move(newBlock);
+      spaceBlock = spaceBlock->next_.get();
+      logger << logger.debug << "new Block" << spaceBlock << endlog;
+      pSpace = spaceBlock->pBegin_;
+    }
+  }
+
+  return bytesAppended;
+}
 
 };  // namespace SocketServer

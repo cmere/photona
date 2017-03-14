@@ -17,7 +17,7 @@ namespace SocketServer
 
 
 static const unsigned int TCPReadBufferSize = 1024*1024;
-static const unsigned int MaxNumberOfRead = 10;
+static const unsigned int MaxNumberBlocksPerReadWrite = 10;
 static const unsigned int MaxInMsgs = 100;
 
 TCPSocket::TCPSocket() 
@@ -81,27 +81,27 @@ TCPSocket::handleSelectReadable()
   }
 
   unsigned int totalNumBytesRead = 0;
-  while (totalNumBytesRead < MaxNumberOfRead * BlockBuffer::getSizePerBlock()) {
-    int numBytesRead = ::read(fd_, blockBuffer_.getSpacePtr(), blockBuffer_.getContinuousSpaceSize());
+  while (totalNumBytesRead < MaxNumberBlocksPerReadWrite * BlockBuffer::getSizePerBlock()) {
+    int numBytesRead = ::read(fd_, recvBuffer_.getSpacePtr(), recvBuffer_.getContinuousSpaceSize());
     logger << logger.debug << "read bytes " << numBytesRead << endlog;
     if (numBytesRead == 0) {
       logger << "socket=" << socketID_ << " read EOF" << endlog;
       close();
       break;
     }
-    if (numBytesRead < 0) {
+    else if (numBytesRead < 0) {
       if (errno != EAGAIN) {
         logger << "socket=" << socketID_ << " read error " << strerror(errno) << endlog;
         close();
       }
       break;
     }
-    blockBuffer_.resizePush(numBytesRead);
+    recvBuffer_.resizePush(numBytesRead);
     totalNumBytesRead += numBytesRead;
   }
 
   // parse message and put into buffer
-  while (MessageBuffer::Singleton().extractMessageFromSocket(blockBuffer_, socketID_)) {
+  while (MessageBuffer::Singleton().extractMessageFromSocket(recvBuffer_, socketID_)) {
   }
 
   return totalNumBytesRead;
@@ -237,8 +237,36 @@ TCPSocket::handleSelectReadable()
 int
 TCPSocket::handleSelectWritable()
 {
-  // send as many bytes as possible. If receiver side is choked, select() won't set writable on this socket.
+  unsigned int totalBytesSend = 0;
+  while (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
+    shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
+    if (MessageBase::toBytes(sendBuffer_, *pMsg) <= 0) {
+      logger << "socket=" << socketID_ << " failed to write message to buffer " << pMsg->getName() << endlog; 
+      return -1;
+    }
 
+    if (   sendBuffer_.getContinuousDataSize() > 0 
+        && totalBytesSend < MaxNumberBlocksPerReadWrite * BlockBuffer::getSizePerBlock()) {
+      int numBytesSend = ::write(fd_, sendBuffer_.getDataPtr(), sendBuffer_.getContinuousDataSize());
+      logger << logger.debug << "socket=" << socketID_ << " send " << numBytesSend << " bytes" << endlog;
+      if (numBytesSend < 0) {
+        if (errno != EAGAIN) {
+          logger << "socket=" << socketID_ << " write error " << strerror(errno) << endlog;
+          close();
+        }
+        break;
+      }
+      sendBuffer_.resizePop(numBytesSend);
+      totalBytesSend += numBytesSend;
+    }
+    else {
+      break;
+    }
+  }
+
+  return totalBytesSend;
+
+  /*
   // send left-over from last send().
   char* pCurrent = pBytesNotSend_.get();
   if (numBytesNotSend_ > 0) {
@@ -308,6 +336,7 @@ TCPSocket::handleSelectWritable()
   }
 
   return 0;
+  */
 }
 
 bool
