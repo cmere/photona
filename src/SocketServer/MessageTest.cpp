@@ -48,7 +48,9 @@ MessageTest::print_(BlockBuffer& buffer, unsigned int& offset) const
     }
   }
   else {
+    logger << "MessageTest build string " << endlog;
     string s(data_.get(), 100*1024*1024);
+    logger << "MessageTest build string done" << endlog;
     if ((count = printT_(buffer, s, offset)) == 0) {
       return 0;
     }

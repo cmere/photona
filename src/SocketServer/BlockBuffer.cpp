@@ -107,6 +107,7 @@ BlockBuffer::Block::resizePop(unsigned int numBytes)
   }
   else {
     pData_ = nullptr;
+    pSpace_ = pBegin_;
     return numExistingData;
   }
 }

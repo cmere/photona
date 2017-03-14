@@ -238,11 +238,14 @@ int
 TCPSocket::handleSelectWritable()
 {
   unsigned int totalBytesSend = 0;
-  while (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
-    shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
-    if (MessageBase::toBytes(sendBuffer_, *pMsg) <= 0) {
-      logger << "socket=" << socketID_ << " failed to write message to buffer " << pMsg->getName() << endlog; 
-      return -1;
+  while (   sendBuffer_.getTotalDataSize() > 0 
+         || MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
+    if (sendBuffer_.getTotalDataSize() == 0) {
+      shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
+      if (MessageBase::toBytes(sendBuffer_, *pMsg) <= 0) {
+        logger << "socket=" << socketID_ << " failed to write message to buffer " << pMsg->getName() << endlog; 
+        return -1;
+      }
     }
 
     if (   sendBuffer_.getContinuousDataSize() > 0 
@@ -374,10 +377,8 @@ TCPSocket::connectTo(const string& serverIPAddress, unsigned int serverPort)
 bool
 TCPSocket::hasBytesToSend() const
 {
-  if (pBytesNotSend_ && numBytesNotSend_ > 0) {
-    return true;
-  }
-  if (MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
+  if (   sendBuffer_.getTotalDataSize() > 0 
+      || MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
     return true;
   }
 
