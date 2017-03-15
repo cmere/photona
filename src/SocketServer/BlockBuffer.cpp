@@ -1,6 +1,7 @@
 #include "include/first.hpp"
 #include "BlockBuffer.hpp"
 
+#include <exception>
 #include <list>
 
 using namespace std;
@@ -204,7 +205,7 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
     return 0;
   }
 
-  unsigned int bytesAppended = count;
+  unsigned int bytesAppended = 0;
 
   // find block starting from offset
   Block* spaceBlock = currSpaceBlock_;
@@ -214,7 +215,7 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
     if (!spaceBlock) {
       // append() should be called sequentially: append(Field_1); append(Field_2); ...
       logger << "error: space block should not be null in appending. " << count << " " << offset << endlog;
-      return 0;
+      throw exception();
     }
   }
 
@@ -224,12 +225,14 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
     unsigned int availableSpaces = spaceBlock->pEnd_ - pSpace;
     if (availableSpaces > count) {
       memcpy(pSpace, data, count);
+      bytesAppended += count;
       count = 0;
       break;
     }
     else {
       memcpy(pSpace, data, availableSpaces);
       count -= availableSpaces;
+      bytesAppended += availableSpaces;
       // create a new block
       unique_ptr<Block> newBlock(new Block());
       spaceBlock->next_ = move(newBlock);

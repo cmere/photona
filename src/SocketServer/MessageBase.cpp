@@ -4,6 +4,8 @@
 #include "MessageEcho.hpp"
 #include "MessageTest.hpp"
 
+#include <exception>
+
 using namespace std;
 
 namespace SocketServer
@@ -89,27 +91,32 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase>& pMsg)
 unsigned int
 MessageBase::toBytes(BlockBuffer& buffer, const MessageBase& msg)
 {
-  unsigned int offset = 0;
-  unsigned int count = 0;
-  // put msg length at first, then update this length after real length is known.
-  string msglenStr = "10|0123456789";
-  count = buffer.append(msglenStr.c_str(), msglenStr.size(), offset);
-  offset += count;
-  unsigned int msglen = msg.print_(buffer, offset);
-  if (msglen <= 0) {
-    logger << "failed to write message to buffer. " << msg.getName() << endlog;
+  try {
+    unsigned int offset = 0;
+    unsigned int count = 0;
+    // put msg length at first, then update this length after real length is known.
+    string msglenStr = "10|0123456789";
+    count = buffer.append(msglenStr.c_str(), msglenStr.size(), offset);
+    offset += count;
+    unsigned int msglen = msg.print_(buffer, offset);
+    if (msglen <= 0) {
+      logger << "failed to write message to buffer. " << msg.getName() << endlog;
+      return 0;
+    }
+    count += msglen;
+
+    // replace message length by real one.
+    msglenStr = to_string(msglen);   // "6789"
+    msglenStr = string(10 - msglenStr.size(), '0') + msglenStr;   // padding leading zero "0000006789"
+    msglenStr = "10|" + msglenStr;  // "10|0000006789"
+    buffer.append(msglenStr.c_str(), msglenStr.size(), 0);  // replace
+
+    buffer.resizePush(count);
+    return count;
+  }
+  catch (...) {
     return 0;
   }
-  count += msglen;
-
-  // replace message length by real one.
-  msglenStr = to_string(msglen);   // "6789"
-  msglenStr = string(10 - msglenStr.size(), '0') + msglenStr;   // padding leading zero "0000006789"
-  msglenStr = "10|" + msglenStr;  // "10|0000006789"
-  buffer.append(msglenStr.c_str(), msglenStr.size(), 0);  // replace
-
-  buffer.resizePush(count);
-  return count;
 }
 
 unsigned int 
@@ -137,7 +144,7 @@ MessageBase::parse_(BlockBuffer& buffer, unsigned int& offset)
 unsigned int
 MessageBase::print_(BlockBuffer& buffer, unsigned int& offset) const
 {
-  return printT_(buffer, type_, offset);
+  return printT_(buffer, type_, "type", offset);
 }
 
 template<>
@@ -171,33 +178,27 @@ bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string&
 }
 
 template<>
-unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, unsigned int& offset)
+unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, const string& fieldName, unsigned int& offset)
 {
-  auto lenstr = std::to_string(t.size());
-  unsigned int count = 0;
-  if ((count = buffer.append(lenstr.c_str(), lenstr.size(), offset)) == lenstr.size()) {
-      offset += count;
-  }
-  else {
-    return 0;
-  }
-
-  const char c = '|';
-  if ((count = buffer.append(&c, 1, offset)) == 1) {
-      offset += count;
-  }
-  else {
-    return 0;
-  }
-  
-  if ((count = buffer.append(t.c_str(), t.size(), offset)) == t.size()) {
+  try{
+    auto lenstr = std::to_string(t.size()) + '|';
+    unsigned int count = 0;
+    if ((count = buffer.append(lenstr.c_str(), lenstr.size(), offset)) != lenstr.size()) {
+      throw exception();
+    }
     offset += count;
-  }
-  else {
-    return 0;
-  }
 
-  return lenstr.size() + 1 + t.size();
+    if ((count = buffer.append(t.c_str(), t.size(), offset)) != t.size()) {
+      throw exception();
+    }
+    offset += count;
+
+    return lenstr.size() + t.size();
+  }
+  catch (...) {
+    logger << "failed to print field " << fieldName << endlog;
+    throw;
+  }
 }
 
 unsigned int

@@ -46,10 +46,10 @@ class MessageBase
     virtual unsigned int print_(BlockBuffer&, unsigned int& offset) const;
 
     template<class T>
-      static unsigned int printT_(BlockBuffer& buffer, const T& t, unsigned int& offset)
+      static unsigned int printT_(BlockBuffer& buffer, const T& t, const std::string& fieldName, unsigned int& offset)
       {
         std::string s = std::to_string(t);
-        return printT_(buffer, s, offset);
+        return printT_(buffer, s, fieldName, offset);
       }
 
     template<class T>
@@ -88,7 +88,7 @@ template<>
   bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string& fieldName, unsigned int& offset);
 
 template<>
-  unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, unsigned int& offset);
+  unsigned int MessageBase::printT_<std::string>(BlockBuffer& buffer, const std::string& t, const std::string& fieldName, unsigned int& offset);
 
 template<> 
   class MessageBase::ParseTrait<unsigned int> {

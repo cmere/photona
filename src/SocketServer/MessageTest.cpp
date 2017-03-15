@@ -16,36 +16,20 @@ MessageTest::setData(const char* data, unsigned int length)
 unsigned int
 MessageTest::print_(BlockBuffer& buffer, unsigned int& offset) const
 {
-  unsigned int bytesPrinted = 0;
   unsigned int count = 0;
-  if ((count = MessageBase::print_(buffer, offset)) == 0) {
-    return 0;
-  }
-  else {
-    bytesPrinted += count;
-  }
+  count += MessageBase::print_(buffer, offset);
 
   // send "ab|c" as data.
   if (isTestTruncatedData_) {
-    if ((count = printT_(buffer, string("ab|c"), offset)) == 0) {
-      return 0;
-    }
-    else {
-      bytesPrinted += count;
-    }
+    count += printT_(buffer, string("ab|c"), "data", offset);
   }
   else {
     logger << "MessageTest build string " << endlog;
     string s(data_.get(), 100*1024*1024);
     logger << "MessageTest build string done" << endlog;
-    if ((count = printT_(buffer, s, offset)) == 0) {
-      return 0;
-    }
-    else {
-      bytesPrinted += count;
-    }
+    count += printT_(buffer, s, "data", offset);
   }
-  return bytesPrinted;
+  return count;
 }
 
 bool

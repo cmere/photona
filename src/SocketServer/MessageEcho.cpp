@@ -7,9 +7,12 @@ using namespace std;
 namespace SocketServer {
 
 unsigned int
-MessageEcho::print_(BlockBuffer&, unsigned int& offset) const
+MessageEcho::print_(BlockBuffer& buffer, unsigned int& offset) const
 {
-  return 0;
+  unsigned int count = 0;
+  count += MessageBase::print_(buffer, offset);
+  count += printT_(buffer, content_, "content", offset);
+  return count;
 }
 
 bool
