@@ -243,8 +243,8 @@ TCPSocket::handleSelectWritable()
     if (sendBuffer_.getTotalDataSize() == 0) {
       shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
       if (MessageBase::toBytes(sendBuffer_, *pMsg) <= 0) {
-        logger << "socket=" << socketID_ << " failed to write message to buffer " << pMsg->getName() << endlog; 
-        return -1;
+        logger << "socket=" << socketID_ << " failed to write message to buffer. " << pMsg->getName() << " ignored." << endlog; 
+        return 0;
       }
     }
 

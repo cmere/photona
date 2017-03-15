@@ -63,7 +63,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     // write
     const auto& readyToWriteSockets = selector.getReadyToWrite();
     for (const auto& elm : readyToWriteSockets) {
-      if (elm->handleSelectWritable() <= 0 && elm->fd() < 0) {
+      if (elm->handleSelectWritable() < 0 && elm->fd() < 0) {
         logger << logger.test << "remove socket " << elm->getSocketID() << " because write error." << endlog;
         selector.removeFromAll(elm);
         continue;
