@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
       logger << " socket connect failed: " << strerror(errno) << endlog;
       return EXIT_FAILURE;
     }
-    logger << logger.test << "fd=" << pTestSocket->fd() << " connected " << pTestSocket->getLocalPair() << " ->  " <<  pTestSocket->getPeerPair() << endlog;
     selector.addToReadSelectable(pTestSocket);
     selector.addToWriteSelectable(pTestSocket);
 
@@ -84,25 +83,22 @@ int main(int argc, char *argv[])
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
   }
 
-  timeval timeout;
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
+  //timeval timeout;
+  //timeout.tv_sec = 1;
+  //timeout.tv_usec = 0;
 
   while (1) {
-    int sel = selector.select(&timeout);
-    logger << logger.debug << "select() = " << sel << endlog;
+    int sel = selector.select();
     if (sel <= 0) {
       logger << "select return 0, exit" << endlog;
       break;
     }
 
     auto pReadSockets = selector.getReadyToRead();
-    logger << logger.debug << "number socket ready to read = " << pReadSockets.size() << endlog;
     auto pWriteSockets = selector.getReadyToWrite();
-    logger << logger.debug << "number socket ready to write = " << pWriteSockets.size() << endlog;
 
     for (auto pReadSocket : pReadSockets) {
-      if (pReadSocket->handleSelectReadable() <= 0) {  // eof or error
+      if (pReadSocket->handleSelectReadable() <= 0 && pReadSocket->fd() < 0) {  // eof or error
         pWriteSockets.erase(pReadSocket);
       }
     }
