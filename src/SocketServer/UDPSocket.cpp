@@ -23,7 +23,11 @@ UDPSocket::UDPSocket()
 bool 
 UDPSocket::bind(const std::string& localIPAddress, unsigned int localPort)
 {
-  return SocketBase::bind_(localIPAddress, localPort);
+  if (SocketBase::bind_(localIPAddress, localPort)) {
+    logger << logger.test << "UDP socket=" << socketID_ << " bind to " << localIPAddress << ":" << localPort << endlog;
+    return true;
+  }
+  return false;
 }
 
 int 
