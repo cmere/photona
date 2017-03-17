@@ -42,7 +42,7 @@ Logger::openLog(const std::string& logFilename)
     ofs.close();
   }
   ofs.open((LOG_DIR + logFilename).c_str(), ios_base::out | ios_base::app);
-  logsize = 0;
+  logsize = ofs.tellp();
 
   time_t t = time(0);
   string tz = ::localtime(&t)->tm_zone;
