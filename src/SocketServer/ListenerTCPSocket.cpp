@@ -22,7 +22,7 @@ ListenerTCPSocket::handleSelectReadable()
 {
   sockaddr_in peerIPSockAddr;
   socklen_t peerIPSockAddrLength = sizeof(peerIPSockAddr);
-  int fdPeerSocket = ::accept4(fd_, (sockaddr*)&peerIPSockAddr, &peerIPSockAddrLength, SOCK_NONBLOCK | SOCK_CLOEXEC);
+  int fdPeerSocket = ::accept(fd_, (sockaddr*)&peerIPSockAddr, &peerIPSockAddrLength);
   if (fdPeerSocket == -1) {
     logger << "socket accept error: " << strerror(errno) << endlog;
     return -1;
@@ -36,7 +36,7 @@ ListenerTCPSocket::handleSelectReadable()
   }
 
   pAcceptedClientSocket_.reset(new TCPSocket(fdPeerSocket, peerIPAddress, peerPort));
-  logger << "new client fd=" << fdPeerSocket << " " << peerIPAddress << ":" << peerPort << endlog;
+  logger << logger.test << "accept client socket=" << pAcceptedClientSocket_->getSocketID() << " " << peerIPAddress << ":" << peerPort << endlog;
   
   return 1;
 }
@@ -60,6 +60,7 @@ ListenerTCPSocket::bindAndListen(const std::string& localIPAddress, unsigned int
     return false;
   }
 
+  logger << logger.test << "TCP socket=" << socketID_ << " listening " << localIPAddress_ << ":" << localPort_ << endlog;
   return true;
 }
 
