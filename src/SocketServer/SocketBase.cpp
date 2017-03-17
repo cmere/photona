@@ -22,10 +22,10 @@ SocketBase::SocketBase(int socketType)
 {
   fd_ = ::socket(AF_INET, socketType, 0);
   if (fd_ == -1) {
-    logger << "create socket " << socketID_ << " failed [" << strerror(errno) << "]" << endlog;
+    logger << "create socket=" << socketID_ << " failed [" << strerror(errno) << "]" << endlog;
     return;
   }
-  logger << "create socket " << socketID_ << " fd=" << fd_ << endlog;
+  logger << "create socket=" << socketID_ << " fd=" << fd_ << endlog;
 
   /*
   int flag = ::fcntl(fd_, F_GETFD);
@@ -42,7 +42,7 @@ SocketBase::SocketBase(int socketType)
 SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPort)
   : socketID_(staticSocketID_++), fd_(fd), peerIPAddress_(peerIPAddress), peerPort_(peerPort)
 {
-  logger << "create socket " << socketID_ << " fd=" << fd_ << " peer=" << peerIPAddress << ":" << peerPort << endlog;
+  logger << "create socket=" << socketID_ << " fd=" << fd_ << " peer=" << peerIPAddress << ":" << peerPort << endlog;
 }
 
 SocketBase::~SocketBase()
