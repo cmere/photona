@@ -35,7 +35,7 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase>& pMsg)
     // to calculate total length, e.g. "2|12abcdefghijkl"  message body length is 12, total length is 16.
     msglen = to_string(strMsgBodyLen.size()).size() + 1 + strMsgBodyLen.size() + msgBodyLen;
     if (buflen < msglen) {
-      logger << logger.test << "partial message " << buflen << " v.s. " << msglen << endlog;
+      logger << "partial message " << buflen << " v.s. " << msglen << endlog;
       return 0;  // partial message.
     }
   }
@@ -72,7 +72,7 @@ MessageBase::fromBytes(BlockBuffer& buffer, shared_ptr<MessageBase>& pMsg)
     pMsg.reset(new MessageTest());
   }
   else {
-    logger << logger.test << "error: unknown message type " << type << endlog;
+    logger << "error: unknown message type " << type << endlog;
     buffer.resizePop(msglen);
     return -1;
   }
