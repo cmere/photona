@@ -34,19 +34,13 @@ class TCPSocket : public SocketBase
     TCPSocket(const TCPSocket&) = delete;
     TCPSocket& operator=(const TCPSocket&) = delete;
 
-  private:
-    std::string strBuffer_;
-    std::vector<char> vecBuffer_;
-    std::deque<char> dequeBuffer_;
+    int checkNonBlockConnect_();
 
+  private:
     BlockBuffer recvBuffer_;
     BlockBuffer sendBuffer_;
 
-    std::unique_ptr<char> pBytesNotExtracted_;  // after read(), some bytes are not extracted into messages.
-    unsigned int numBytesNotExtracted_ = 0;
-
-    std::unique_ptr<char> pBytesNotSend_;  // after write(), a part of a message are sent, some bytes are left.
-    unsigned int numBytesNotSend_ = 0;
+    bool isConnected_ = false;
 };
 
 }
