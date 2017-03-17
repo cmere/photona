@@ -29,9 +29,6 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     return false;
   }
 
-  logger << logger.test << "socket=" << pTCPServerSocket_->getSocketID() 
-         << " listening " << pTCPServerSocket_->getLocalIPAddress() << ":" << pTCPServerSocket_->getLocalPort() << endlog;
-
   pUDPServerSocket_ = make_shared<UDPSocket>();
   if (!pUDPServerSocket_->bind(ipaddress, port)) {
     logger << "error: socket=" << pUDPServerSocket_->getSocketID() << " failed to bind UPD port " << ipaddress << ":" << port << endlog;
@@ -40,6 +37,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
 
   FDSelector selector;
   selector.addToReadSelectable(pTCPServerSocket_);
+  selector.addToWriteSelectable(pTCPServerSocket_);
   selector.addToReadSelectable(pUDPServerSocket_);
   selector.addToWriteSelectable(pUDPServerSocket_);
   
@@ -64,7 +62,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     const auto& readyToWriteSockets = selector.getReadyToWrite();
     for (const auto& elm : readyToWriteSockets) {
       if (elm->handleSelectWritable() < 0 && elm->fd() < 0) {
-        logger << logger.test << "remove socket " << elm->getSocketID() << " because write error." << endlog;
+        logger << logger.test << "remove socket=" << elm->getSocketID() << " because write error." << endlog;
         selector.removeFromAll(elm);
         continue;
       }
@@ -74,7 +72,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
     const auto& readyToReadSockets = selector.getReadyToRead();
     for (const auto& elm : readyToReadSockets) {
       if (elm->handleSelectReadable() <= 0 && elm->fd() < 0) {
-        logger << logger.test << "remove socket " << elm->getSocketID() << " because EOF or read error." << endlog;
+        logger << logger.test << "remove socket=" << elm->getSocketID() << " because EOF or read error." << endlog;
         selector.removeFromAll(elm);
         continue;
       }
