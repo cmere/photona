@@ -20,7 +20,7 @@ MessageBuffer::MessageBuffer()
   : fdRead_(-1), fdWrite_(-1)
 {
   int pipefd[2];
-  if (pipe(pipefd) == -1) {
+  if (::pipe(pipefd) == -1) {
     logger << logger.fatal << "MessageBuffer failed to open pipe: " << strerror(errno) << endlog;
   }
   fdRead_ = pipefd[0];
@@ -54,7 +54,7 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
       pMsg = *itor;
-      logger << logger.test << "socket=" << socketID << " pop message " << pMsg->getName() << endlog;
+      logger << logger.test << "socket=" << socketID << " send message " << pMsg->getName() << endlog;
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
@@ -72,13 +72,14 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
   int numBytesExtracted = MessageBase::fromBytes(blockBuffer, pMsg);
   if (!pMsg) {
     if (numBytesExtracted < 0) {
-      logger << logger.test << "socket=" << socketID << " failed to extract a message." << endlog;
+      logger << "socket=" << socketID << " failed to extract a message." << endlog;
     }
     return numBytesExtracted;
   }
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
   logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
+  queueMessageToSend(pMsg, socketID);
   return numBytesExtracted;
 }
 
