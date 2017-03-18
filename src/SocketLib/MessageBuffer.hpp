@@ -13,7 +13,7 @@ namespace SocketLib
 class BlockBuffer;
 
 /**
- * Input/output buffer for messages. All in/out socket share this one quque (FIFO).
+ * Input/output buffer queue for messages. All in/out socket share this one quque (FIFO).
  *
  * Socket read bytes, send here to construct messages, and save to input queue. 
  * If there are messages in output queue, socket send them.
@@ -32,7 +32,8 @@ class MessageBuffer
 
     bool queueMessageToSend(const std::shared_ptr<MessageBase>&, const SocketID&);
 
-    std::shared_ptr<MessageBase> popMessageToSend(const SocketID&);
+    std::shared_ptr<MessageBase> popInMessage(const SocketID&);
+    std::shared_ptr<MessageBase> popOutMessage(const SocketID&);
 
     //unsigned int removeSocketMessages(const SocketID&);
 
@@ -43,13 +44,17 @@ class MessageBuffer
     MessageBuffer(const MessageBuffer&) = delete;
     MessageBuffer& operator=(const MessageBuffer&) = delete;
 
-  private:
-    using MessageQueueType = std::list<std::shared_ptr<MessageBase>>;
-    MessageQueueType queueIn_;
-    MessageQueueType queueOut_;
+    using MessageQueue = std::list<std::shared_ptr<MessageBase>>;
+    using MsgBySocketID = std::map<SocketID, std::list<MessageQueue::iterator>>;
 
-    std::map<SocketID, std::list<MessageQueueType::iterator>> inMsgBySocketID_;
-    std::map<SocketID, std::list<MessageQueueType::iterator>> outMsgBySocketID_;
+    std::shared_ptr<MessageBase> popMessage_(const SocketID&, MsgBySocketID&);
+
+  private:
+    MessageQueue queueIn_;
+    MessageQueue queueOut_;
+
+    MsgBySocketID inMsgBySocketID_;
+    MsgBySocketID outMsgBySocketID_;
 
     int fdRead_;
     int fdWrite_;

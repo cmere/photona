@@ -46,24 +46,35 @@ MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, cons
 }
 
 shared_ptr<MessageBase> 
-MessageBuffer::popMessageToSend(const SocketID& socketID)
+MessageBuffer::popMessage_(const SocketID& socketID, MsgBySocketID& msgBySocketID)
 {
   shared_ptr<MessageBase> pMsg;
-  auto found = outMsgBySocketID_.find(socketID);
-  if (found != outMsgBySocketID_.end()) {
+  auto found = msgBySocketID.find(socketID);
+  if (found != msgBySocketID.end()) {
     auto& itorList = found->second;
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
       pMsg = *itor;
-      logger << logger.test << "socket=" << socketID << " send message " << pMsg->getName() << endlog;
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
-        outMsgBySocketID_.erase(found);
+        msgBySocketID.erase(found);
       }
     }
   }
   return pMsg;
+}
+
+shared_ptr<MessageBase> 
+MessageBuffer::popInMessage(const SocketID& socketID)
+{
+  return popMessage_(socketID, inMsgBySocketID_);
+}
+
+shared_ptr<MessageBase> 
+MessageBuffer::popOutMessage(const SocketID& socketID)
+{
+  return popMessage_(socketID, outMsgBySocketID_);
 }
 
 unsigned int
@@ -80,6 +91,7 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
   logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
+  pMsg = popInMessage(socketID);
   queueMessageToSend(pMsg, socketID);
   return numBytesExtracted;
 }
