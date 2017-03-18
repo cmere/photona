@@ -43,7 +43,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
   selector.addToWriteSelectable(pTCPServerSocket_);
   selector.addToReadSelectable(pUDPServerSocket_);
   selector.addToWriteSelectable(pUDPServerSocket_);
-  selector.addToReadSelectable(MessageCenter::SharedPtr());
+  selector.addToReadSelectable(MessageCenter::GetSharedPtr());
   
   while (1) {
     if (!pTCPServerSocket_->isValid()) {

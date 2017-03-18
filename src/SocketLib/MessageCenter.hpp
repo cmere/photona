@@ -14,8 +14,8 @@ namespace SocketLib
 class MessageCenter : public ISelectable
 {
   public:
-    static MessageCenter& Object();
-    static std::shared_ptr<MessageCenter> SharedPtr();
+    static std::shared_ptr<MessageCenter> GetSharedPtr();
+    static void SetSharedPtr(std::shared_ptr<MessageCenter>);
 
     virtual int fd() const;
     virtual void close() { }
@@ -27,12 +27,13 @@ class MessageCenter : public ISelectable
     virtual const SocketID& getSocketID() const { return MessageCenterPipeID; };
     virtual bool hasBytesToSend() const { return false; } 
 
-  private:
+  protected:
     MessageCenter();
     MessageCenter(const MessageCenter&) = delete;
     MessageCenter& operator=(const MessageCenter&) = delete;
 
   private:
+    static std::shared_ptr<MessageCenter> pObject_;
 };
 
 }

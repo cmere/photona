@@ -19,8 +19,10 @@ add_library(socketlib STATIC ${SocketLib_Source})
 file(GLOB UtilLib_Source "Util/*.cpp")
 add_library(util STATIC ${UtilLib_Source})
 
-add_executable (server Server/main.cpp)
+file(GLOB ServerApp_Source "Server/*.cpp")
+add_executable (server ${ServerApp_Source})
 target_link_libraries(server socketlib util ${LibBoostDateTime})
 
-add_executable (client Client/main.cpp)
+file(GLOB ClientApp_Source "Client/*.cpp")
+add_executable (client ${ClientApp_Source})
 target_link_libraries(client socketlib util ${LibBoostDateTime})

@@ -13,7 +13,7 @@ class TCPSocket;
 class UDPSocket;
 
 /**
- * Socket server. Serve TCP and UPD on the same port number. single process, single thread.
+ * Socket server. Serve TCP and UPD on the same port number.
  */
 class SocketServer
 {

@@ -7,25 +7,25 @@ using namespace Util;
 namespace SocketLib
 {
 
+shared_ptr<MessageCenter> MessageCenter::pObject_;
+
 shared_ptr<MessageCenter>
-MessageCenter::SharedPtr()
+MessageCenter::GetSharedPtr()
 {
-  static shared_ptr<MessageCenter> pObject;
-  if (!pObject) {
-    pObject.reset(new MessageCenter);
+  if (!pObject_) {
+    pObject_.reset(new MessageCenter);  // default message center
   }
-  return pObject;
+  return pObject_;
 }
 
-MessageCenter&
-MessageCenter::Object()
+void 
+MessageCenter::SetSharedPtr(std::shared_ptr<MessageCenter> pObj)
 {
-  return *SharedPtr();
+  pObject_ = pObj;
 }
 
 MessageCenter::MessageCenter()
-{
-
+{ 
 }
 
 int
