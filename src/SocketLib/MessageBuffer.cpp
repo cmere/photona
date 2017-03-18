@@ -37,20 +37,33 @@ bool
 MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, const SocketID& socketID)
 {
   if (pMsg) {
-    queueOut_.push_back(pMsg);
+    queueOut_.push_back(make_pair(socketID, pMsg));
     outMsgBySocketID_[socketID].push_back(--queueOut_.end());
     logger << logger.test << "socket=" << socketID << " queue message " << pMsg->getName() << endlog;
   }
   return true;
 }
 
-shared_ptr<MessageBase> 
+pair<SocketID, shared_ptr<MessageBase>>
 MessageBuffer::popFirstMessageInQueue()
 {
-  auto pMsg = queueIn_.front();
+  auto itBegin = queueIn_.begin();
+  auto socketID_pMsg = *itBegin;
+  auto found = inMsgBySocketID_.find(socketID_pMsg.first);
+  if (found != inMsgBySocketID_.end()) {
+    for (auto it = found->second.begin(); it != found->second.end(); ++it) {
+      if (*it == itBegin) {
+        found->second.erase(it);
+        break;
+      }
+    }
+    if (found->second.empty()) {
+      inMsgBySocketID_.erase(found);
+    }
+  }
+
   queueIn_.pop_front();
-  // TODO:
-  return pMsg;
+  return socketID_pMsg;
 }
 
 shared_ptr<MessageBase> 
@@ -62,7 +75,7 @@ MessageBuffer::popMessageToSend(const SocketID& socketID)
     auto& itorList = found->second;
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
-      pMsg = *itor;
+      pMsg = itor->second;
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
@@ -84,7 +97,7 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
     }
     return numBytesExtracted;
   }
-  queueIn_.push_back(pMsg);
+  queueIn_.push_back(make_pair(socketID, pMsg));
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
   logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
   

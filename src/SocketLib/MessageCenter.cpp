@@ -41,13 +41,15 @@ MessageCenter::handleSelectReadable()
   if (::read(fd(), &c, 1) != 1) {
     logger << "MessageCenter failed to read from pipe." << endlog;
   }
-  auto pMsg = MessageBuffer::Singleton().popFirstMessageInQueue();
+  auto socketID_pMsg = MessageBuffer::Singleton().popFirstMessageInQueue();
+  auto socketID = socketID_pMsg.first;
+  auto pMsg = socketID_pMsg.second;
   if (!pMsg) {
     logger << "MessageCenter failed to pop message from MessageBuffer." << endlog;
     return 0;
   }
 
-  logger << "discard message " << pMsg->getName() << endlog;
+  logger << "discard message " << pMsg->getName() << " received on socketID=" << socketID << endlog;
   return 0;
 }
 

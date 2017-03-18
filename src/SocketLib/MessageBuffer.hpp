@@ -32,7 +32,7 @@ class MessageBuffer
 
     bool queueMessageToSend(const std::shared_ptr<MessageBase>&, const SocketID&);
 
-    std::shared_ptr<MessageBase> popFirstMessageInQueue();
+    std::pair<SocketID, std::shared_ptr<MessageBase>> popFirstMessageInQueue();
     std::shared_ptr<MessageBase> popMessageToSend(const SocketID&);
 
     //unsigned int removeSocketMessages(const SocketID&);
@@ -45,7 +45,7 @@ class MessageBuffer
     MessageBuffer& operator=(const MessageBuffer&) = delete;
 
   private:
-    using MessageQueue = std::list<std::shared_ptr<MessageBase>>;
+    using MessageQueue = std::list<std::pair<SocketID, std::shared_ptr<MessageBase>>>;
     MessageQueue queueIn_;
     MessageQueue queueOut_;
 
