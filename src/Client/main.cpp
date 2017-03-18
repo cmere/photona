@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  logger.openLog("log.socketserver_test");
+  logger.openLog("log.client");
 
   string serverIPAddress = argv[1];
   unsigned int serverPort = stoi(argv[2]);

@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  Logger::openLog("log.socketserver");
+  Logger::openLog("log.server");
 
   unsigned int port = 0;
   istringstream iss(argv[1]);
