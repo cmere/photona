@@ -12,8 +12,9 @@
 #include <vector>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 static const unsigned int MaxNumberBlocksPerReadWrite = 10;

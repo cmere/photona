@@ -1,9 +1,9 @@
-#ifndef SOCKETSERVER_ISELECTABLE_H
-#define SOCKETSERVER_ISELECTABLE_H
+#ifndef SOCKETLIB_ISELECTABLE_H
+#define SOCKETLIB_ISELECTABLE_H
 
 #include "SocketID.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class ISelectable
@@ -19,4 +19,4 @@ class ISelectable
 
 }
 
-#endif // SOCKETSERVER_ISELECTABLE_H
+#endif // SOCKETLIB_ISELECTABLE_H

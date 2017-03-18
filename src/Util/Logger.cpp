@@ -30,7 +30,7 @@ bool LogType_Enabled[] = { true, true, true, true };
 
 }  // namespace {
 
-namespace SocketServer 
+namespace Util
 {
 
 Logger logger;
@@ -166,4 +166,4 @@ Logger::enableTest(bool value) {
   LogType_Enabled[LogType_Test] = value;
 }
 
-}
+} // namespace Util

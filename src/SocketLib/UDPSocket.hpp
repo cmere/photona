@@ -1,12 +1,12 @@
-#ifndef SOCKETSERVER_UDPSOCKETBASE_H
-#define SOCKETSERVER_UDPSOCKETBASE_H
+#ifndef SOCKETLIB_UDPSOCKETBASE_H
+#define SOCKETLIB_UDPSOCKETBASE_H
 
 #include <string>
 #include "SocketBase.hpp"
 
 struct sockaddr_in;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**

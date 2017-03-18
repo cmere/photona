@@ -1,9 +1,9 @@
-#ifndef SOCKETSERVER_MESSAGEECHO_HPP
-#define SOCKETSERVER_MESSAGEECHO_HPP
+#ifndef SOCKETLIB_MESSAGEECHO_HPP
+#define SOCKETLIB_MESSAGEECHO_HPP
 
 #include "MessageBase.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class MessageEcho : public MessageBase

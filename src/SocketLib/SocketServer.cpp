@@ -11,8 +11,9 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer 
+namespace SocketLib 
 {
 
 bool

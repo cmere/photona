@@ -7,16 +7,20 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 add_compile_options(-std=c++11 -Wall -Werror -O0)
 
-file(GLOB SocketServer_Lib_Source "SocketServer/*.cpp")
-list(REMOVE_ITEM SocketServer_Lib_Source "SocketServer/main.cpp")
 
 find_library(LibBoostLocale libboost_locale.a)
 find_library(LibBoostSystem libboost_system.a)
 find_library(LibBoostDateTime libboost_date_time.a)
 
-add_library(libsocketserver STATIC ${SocketServer_Lib_Source})
-add_executable (socketserver SocketServer/main.cpp)
-target_link_libraries(socketserver libsocketserver ${LibBoostDateTime})
+file(GLOB SocketLib_Source "SocketLib/*.cpp")
+#list(REMOVE_ITEM SocketServer_Lib_Source "SocketServer/main.cpp")
+add_library(socketlib STATIC ${SocketLib_Source})
 
-add_executable (socketserver_test SocketServer_test/main.cpp)
-target_link_libraries(socketserver_test libsocketserver ${LibBoostDateTime})
+file(GLOB UtilLib_Source "Util/*.cpp")
+add_library(util STATIC ${UtilLib_Source})
+
+add_executable (server Server/main.cpp)
+target_link_libraries(server socketlib util ${LibBoostDateTime})
+
+add_executable (client Client/main.cpp)
+target_link_libraries(client socketlib util ${LibBoostDateTime})

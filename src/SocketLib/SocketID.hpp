@@ -1,7 +1,7 @@
-#ifndef SOCKETSERVER_SOCKETID_HPP
-#define SOCKETSERVER_SOCKETID_HPP
+#ifndef SOCKETLIB_SOCKETID_HPP
+#define SOCKETLIB_SOCKETID_HPP
 
-namespace SocketServer 
+namespace SocketLib 
 { 
   using SocketID = unsigned int;
 }

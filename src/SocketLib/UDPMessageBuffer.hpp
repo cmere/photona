@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_UDPMESSAGEBUFFER_HPP
-#define SOCKETSERVER_UDPMESSAGEBUFFER_HPP
+#ifndef SOCKETLIB_UDPMESSAGEBUFFER_HPP
+#define SOCKETLIB_UDPMESSAGEBUFFER_HPP
 
 #include <map>
 #include <memory>
@@ -8,7 +8,7 @@
 #include "MessageBase.hpp"
 #include "SocketID.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**

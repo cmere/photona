@@ -1,11 +1,11 @@
-#ifndef SOCKETSERVER_LISTENERTCPSOCKET_H
-#define SOCKETSERVER_LISTENERTCPSOCKET_H
+#ifndef SOCKETLIB_LISTENERTCPSOCKET_H
+#define SOCKETLIB_LISTENERTCPSOCKET_H
 
 #include <memory>
 #include <string>
 #include "TCPSocket.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**
@@ -30,4 +30,4 @@ class ListenerTCPSocket : public TCPSocket
 
 }
 
-#endif // SOCKETSERVER_LISTENERTCPSOCKET_H
+#endif // SOCKETLIB_LISTENERTCPSOCKET_H

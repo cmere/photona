@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_SOCKETBASE_H
-#define SOCKETSERVER_SOCKETBASE_H
+#ifndef SOCKETLIB_SOCKETBASE_H
+#define SOCKETLIB_SOCKETBASE_H
 
 #include <string>
 #include "ISelectable.hpp"
@@ -7,7 +7,7 @@
 
 struct sockaddr_in;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**

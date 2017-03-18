@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_TCPSOCKET_H
-#define SOCKETSERVER_TCPSOCKET_H
+#ifndef SOCKETLIB_TCPSOCKET_H
+#define SOCKETLIB_TCPSOCKET_H
 
 #include <deque>
 #include <memory>
@@ -8,7 +8,7 @@
 #include "SocketBase.hpp"
 #include "BlockBuffer.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**
@@ -45,5 +45,5 @@ class TCPSocket : public SocketBase
 
 }
 
-#endif // SOCKETSERVER_TCPSOCKET_H
+#endif // SOCKETLIB_TCPSOCKET_H
 

@@ -9,8 +9,9 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 std::string SocketBase::ANY_IPADDRESS = "*";
@@ -143,6 +144,6 @@ SocketBase::bind_(const std::string& localIPAddress, unsigned int localPort)
   return true;
 }
 
-} // namespace SocketServer
+} // namespace SocketLib
 
 

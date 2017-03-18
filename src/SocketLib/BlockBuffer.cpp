@@ -5,8 +5,9 @@
 #include <list>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer 
+namespace SocketLib 
 {
 
 BlockBuffer::BlockBuffer()
@@ -245,4 +246,4 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
   return bytesAppended;
 }
 
-};  // namespace SocketServer
+};  // namespace SocketLib

@@ -1,10 +1,10 @@
-#ifndef SOCKETSERVER_LOGGER_HPP
-#define SOCKETSERVER_LOGGER_HPP
+#ifndef UTIL_LOGGER_HPP
+#define UTIL_LOGGER_HPP
 
 #include <fstream>
 #include <sstream>
 
-namespace SocketServer 
+namespace Util 
 {
 
 /**

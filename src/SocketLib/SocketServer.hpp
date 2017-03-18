@@ -1,11 +1,11 @@
-#ifndef SOCKETSERVER_SOCKETSERVER_H
-#define SOCKETSERVER_SOCKETSERVER_H
+#ifndef SOCKETLIB_SOCKETLIB_H
+#define SOCKETLIB_SOCKETLIB_H
 
 #include <set>
 #include <memory>
 #include <string>
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class ListenerTCPSocket;
@@ -15,7 +15,7 @@ class UDPSocket;
 /**
  * Socket server. Serve TCP and UPD on the same port number. single process, single thread.
  */
-class SocketServer 
+class SocketServer
 {
   public:
     SocketServer() { }
@@ -35,4 +35,4 @@ class SocketServer
 
 }
 
-#endif // SOCKETSERVER_LISTENSOCKETSERVER_H
+#endif // SOCKETLIB_LISTENSOCKETLIB_H

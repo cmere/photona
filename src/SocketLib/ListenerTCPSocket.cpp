@@ -5,8 +5,9 @@
 #include <netinet/ip.h>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 ListenerTCPSocket::ListenerTCPSocket()

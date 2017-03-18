@@ -1,9 +1,9 @@
-#ifndef SOCKETSERVER_BLOCKBUFFER_H
-#define SOCKETSERVER_BLOCKBUFFER_H
+#ifndef SOCKETLIB_BLOCKBUFFER_H
+#define SOCKETLIB_BLOCKBUFFER_H
 
 #include <memory>
 
-namespace SocketServer
+namespace SocketLib
 {
 
 /**
@@ -87,8 +87,8 @@ class BlockBuffer
     unsigned int totalDataSize_ = 0;
 };
 
-} // namespace SocketServer
+} // namespace SocketLib
 
-#endif // SOCKETSERVER_BLOCKBUFFER_H
+#endif // SOCKETLIB_BLOCKBUFFER_H
 
 

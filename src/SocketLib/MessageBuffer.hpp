@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_MESSAGEBUFFER_HPP
-#define SOCKETSERVER_MESSAGEBUFFER_HPP
+#ifndef SOCKETLIB_MESSAGEBUFFER_HPP
+#define SOCKETLIB_MESSAGEBUFFER_HPP
 
 #include <map>
 #include <memory>
@@ -7,7 +7,7 @@
 #include "MessageBase.hpp"
 #include "SocketID.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class BlockBuffer;

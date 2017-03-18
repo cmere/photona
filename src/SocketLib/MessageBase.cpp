@@ -7,8 +7,9 @@
 #include <exception>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 int
@@ -217,5 +218,5 @@ MessageBase::peekDataFieldLength_(BlockBuffer& buffer, unsigned int& offset)
   return 0;
 }
 
-} // namespace SocketServer
+} // namespace SocketLib
 

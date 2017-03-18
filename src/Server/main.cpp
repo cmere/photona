@@ -1,12 +1,11 @@
 #include "include/first.hpp"
-#include "Logger.hpp"
-#include "SocketBase.hpp"
-#include "SocketServer.hpp"
+#include "SocketLib/SocketServer.hpp"
 
 #include <iostream>
 
 using namespace std;
-using namespace SocketServer;
+using namespace SocketLib;
+using namespace Util;
 
 int main(int argc, char *argv[])
 {
@@ -25,8 +24,8 @@ int main(int argc, char *argv[])
     logger << logger.fatal << "invalid port number " << argv[1] << endlog;
   }
 
-  SocketServer::SocketServer server;
-  if (!server.run(SocketBase::ANY_IPADDRESS, port)) {
+  SocketServer server;
+  if (!server.run("*", port)) {
     exit_code = EXIT_FAILURE;
   }
 

@@ -6,15 +6,15 @@
 #include <unistd.h>
 
 #include "include/first.hpp"
-#include "SocketServer/FDSelector.hpp"
-#include "SocketServer/Logger.hpp"
-#include "SocketServer/MessageBuffer.hpp"
-#include "SocketServer/MessageEcho.hpp"
-#include "SocketServer/MessageTest.hpp"
-#include "SocketServer/TCPSocket.hpp"
+#include "SocketLib/FDSelector.hpp"
+#include "SocketLib/MessageBuffer.hpp"
+#include "SocketLib/MessageEcho.hpp"
+#include "SocketLib/MessageTest.hpp"
+#include "SocketLib/TCPSocket.hpp"
 
 using namespace std;
-using namespace SocketServer;
+using namespace SocketLib;
+using namespace Util;
 
 int main(int argc, char *argv[])
 {

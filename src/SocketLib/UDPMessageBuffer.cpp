@@ -2,8 +2,9 @@
 #include "UDPMessageBuffer.hpp"
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 
 static unsigned int MaxInUDPMsgs = 10;

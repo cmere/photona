@@ -1,5 +1,5 @@
-#ifndef SOCKETSERVER_MESSAGEBASE_HPP
-#define SOCKETSERVER_MESSAGEBASE_HPP
+#ifndef SOCKETLIB_MESSAGEBASE_HPP
+#define SOCKETLIB_MESSAGEBASE_HPP
 
 #include <assert.h>
 #include <iostream>
@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class BlockBuffer;
@@ -59,14 +59,14 @@ class MessageBase
           std::string str;
           unsigned int fieldBytes = getDataField_(buffer, str, offset);
           if (fieldBytes <= 0) {
-            logger << getName() << " failed to parse field " << fieldName << endlog;
+            Util::logger << getName() << " failed to parse field " << fieldName << Util::endlog;
             return false;
           }
           t = ParseTrait<T>::convert(str);
           return true;
         }
         catch (...) {
-          logger << getName() << " failed to parse field " << fieldName << endlog;
+          Util::logger << getName() << " failed to parse field " << fieldName << Util::endlog;
           return false;
         }
       }
@@ -111,6 +111,6 @@ template<>
 ///////////////////////////////////////////////////////////////////////////////////////
 
 
-}  // namespace SocketServer
+}  // namespace SocketLib
 
 #endif

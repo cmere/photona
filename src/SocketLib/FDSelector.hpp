@@ -1,11 +1,11 @@
-#ifndef SOCKETSERVER_FDSELECTOR_H
-#define SOCKETSERVER_FDSELECTOR_H
+#ifndef SOCKETLIB_FDSELECTOR_H
+#define SOCKETLIB_FDSELECTOR_H
 
 #include <map>
 #include <memory>
 #include <set>
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class ISelectable;
@@ -41,5 +41,5 @@ class FDSelector
 
 }
 
-#endif // SOCKETSERVER_FDSELECTOR_H
+#endif // SOCKETLIB_FDSELECTOR_H
 

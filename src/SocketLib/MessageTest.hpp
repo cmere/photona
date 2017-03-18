@@ -1,9 +1,9 @@
-#ifndef SOCKETSERVER_MESSAGETEST_HPP
-#define SOCKETSERVER_MESSAGETEST_HPP
+#ifndef SOCKETLIB_MESSAGETEST_HPP
+#define SOCKETLIB_MESSAGETEST_HPP
 
 #include "MessageBase.hpp"
 
-namespace SocketServer
+namespace SocketLib
 {
 
 class MessageTest : public MessageBase

@@ -3,8 +3,9 @@
 #include "BlockBuffer.hpp"
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer {
+namespace SocketLib {
 
 unsigned int
 MessageEcho::print_(BlockBuffer& buffer, unsigned int& offset) const

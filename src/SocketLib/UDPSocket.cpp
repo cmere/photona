@@ -10,8 +10,9 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer
+namespace SocketLib
 {
 static unsigned int MaxUPDMessageSize = 4096;
 
@@ -88,7 +89,7 @@ UDPSocket::handleSelectWritable()
   return 0;
 }
 
-} // namespace SocketServer
+} // namespace SocketLib
 
 
 

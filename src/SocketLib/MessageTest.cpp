@@ -3,8 +3,9 @@
 #include "BlockBuffer.hpp"
 
 using namespace std;
+using namespace Util;
 
-namespace SocketServer {
+namespace SocketLib {
 
 void
 MessageTest::setData(const char* data, unsigned int length)
