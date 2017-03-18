@@ -14,6 +14,7 @@ class BlockBuffer
 {
   public:
     BlockBuffer();
+    ~BlockBuffer();
 
     static unsigned int getSizePerBlock() { return Block::BlockSize; }
 
@@ -49,7 +50,8 @@ class BlockBuffer
   private:
     class Block {
       public:
-        Block() { }
+        Block();
+        ~Block();
 
         char* getDataPtr() const { return pData_; }
         char* getSpacePtr() const { return pSpace_; }

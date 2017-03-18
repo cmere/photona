@@ -16,6 +16,10 @@ BlockBuffer::BlockBuffer()
   currSpaceBlock_ = currDataBlock_.get();
 }
 
+BlockBuffer::~BlockBuffer()
+{
+}
+
 char* 
 BlockBuffer::getDataPtr() const 
 {
@@ -60,24 +64,6 @@ BlockBuffer::resizePush(unsigned int numBytes)
     unique_ptr<Block> newBlock(new Block());
     currSpaceBlock_->next_ = move(newBlock);
     currSpaceBlock_ = currSpaceBlock_->next_.get();
-    logger << logger.debug << "new Block" << currSpaceBlock_ << endlog;
-  }
-}
-
-unsigned int
-BlockBuffer::Block::resizePush(unsigned int numBytes) 
-{
-  if (pData_ == nullptr) {
-    pData_ = pBegin_;
-  }
-  unsigned int numSpaces = pEnd_ - pSpace_;
-  if (numSpaces > numBytes) {
-    pSpace_ += numBytes;
-    return numBytes;
-  }
-  else {
-    pSpace_ = pEnd_;
-    return numSpaces;
   }
 }
 
@@ -96,21 +82,6 @@ BlockBuffer::resizePop(unsigned int numBytes)
       currSpaceBlock_ = currDataBlock_->next_.get();
     }
     currDataBlock_ = move(currDataBlock_->next_);
-  }
-}
-
-unsigned int
-BlockBuffer::Block::resizePop(unsigned int numBytes) 
-{
-  unsigned int numExistingData = pSpace_ - pData_;
-  if (numExistingData > numBytes) {
-    pData_ += numBytes;
-    return numBytes;
-  }
-  else {
-    pData_ = nullptr;
-    pSpace_ = pBegin_;
-    return numExistingData;
   }
 }
 
@@ -151,20 +122,6 @@ BlockBuffer::getdata(char* dest, unsigned int count, unsigned int offset) const
   return totalPopped;
 }
 
-unsigned int
-BlockBuffer::Block::getdata(char* dest, unsigned int count, unsigned int offset) const
-{
-  unsigned int dataSize = getDataSize();
-  if (dataSize > count + offset) {
-    memcpy(dest, pData_ + offset, count);
-    return count;
-  }
-  else {
-    memcpy(dest, pData_ + offset, dataSize - offset);
-    return dataSize - offset;
-  }
-}
-
 bool
 BlockBuffer::getline(std::string& dest, char delim, unsigned int offset) const
 {
@@ -175,24 +132,6 @@ BlockBuffer::getline(std::string& dest, char delim, unsigned int offset) const
       block = block->next_.get();
     }
     else {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool
-BlockBuffer::Block::getline(std::string& dest, char delim, unsigned int offset) const
-{
-  if (isEmpty()) {
-    return false;
-  }
-
-  char c = 0;
-  char* p = pData_ + offset;
-  while ((c = *p++) != delim) {
-    dest.push_back(c);
-    if (p == pSpace_) {
       return false;
     }
   }
@@ -238,12 +177,88 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
       unique_ptr<Block> newBlock(new Block());
       spaceBlock->next_ = move(newBlock);
       spaceBlock = spaceBlock->next_.get();
-      logger << logger.debug << "new Block" << spaceBlock << endlog;
       pSpace = spaceBlock->pBegin_;
     }
   }
 
   return bytesAppended;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// BlockBuffer::Block
+BlockBuffer::Block::Block()
+{
+  logger << logger.debug << "ctor Block" << this << endlog;
+}
+
+BlockBuffer::Block::~Block()
+{
+  logger << logger.debug << "dtor Block" << this << endlog;
+}
+
+unsigned int
+BlockBuffer::Block::resizePush(unsigned int numBytes) 
+{
+  if (pData_ == nullptr) {
+    pData_ = pBegin_;
+  }
+  unsigned int numSpaces = pEnd_ - pSpace_;
+  if (numSpaces > numBytes) {
+    pSpace_ += numBytes;
+    return numBytes;
+  }
+  else {
+    pSpace_ = pEnd_;
+    return numSpaces;
+  }
+}
+
+unsigned int
+BlockBuffer::Block::resizePop(unsigned int numBytes) 
+{
+  unsigned int numExistingData = pSpace_ - pData_;
+  if (numExistingData > numBytes) {
+    pData_ += numBytes;
+    return numBytes;
+  }
+  else {
+    pData_ = nullptr;
+    pSpace_ = pBegin_;
+    return numExistingData;
+  }
+}
+
+unsigned int
+BlockBuffer::Block::getdata(char* dest, unsigned int count, unsigned int offset) const
+{
+  unsigned int dataSize = getDataSize();
+  if (dataSize > count + offset) {
+    memcpy(dest, pData_ + offset, count);
+    return count;
+  }
+  else {
+    memcpy(dest, pData_ + offset, dataSize - offset);
+    return dataSize - offset;
+  }
+}
+
+bool
+BlockBuffer::Block::getline(std::string& dest, char delim, unsigned int offset) const
+{
+  if (isEmpty()) {
+    return false;
+  }
+
+  char c = 0;
+  char* p = pData_ + offset;
+  while ((c = *p++) != delim) {
+    dest.push_back(c);
+    if (p == pSpace_) {
+      return false;
+    }
+  }
+  return true;
+}
+
 
 };  // namespace SocketLib
