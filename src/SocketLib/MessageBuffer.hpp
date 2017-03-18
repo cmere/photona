@@ -16,7 +16,9 @@ class BlockBuffer;
  * Input/output buffer queue for messages. All in/out socket share this one quque (FIFO).
  *
  * Socket read bytes, send here to construct messages, and save to input queue. 
- * If there are messages in output queue, socket send them.
+ * If there are messages in output queue, socket send them. After a message is read, put
+ * into InQueue, notify pipe's another end (MessageCenter) to process the message. 
+ *
  */
 class MessageBuffer
 {
@@ -53,6 +55,7 @@ class MessageBuffer
     MsgBySocketID inMsgBySocketID_;
     MsgBySocketID outMsgBySocketID_;
 
+    // pipe is used to notify another end tat there is a new message waiting in InQueue.
     int fdInMsgPipeRead_ = -1;
     int fdInMsgPipeWrite_ = -1;
 };
