@@ -91,8 +91,6 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
   logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
-  pMsg = popInMessage(socketID);
-  queueMessageToSend(pMsg, socketID);
   return numBytesExtracted;
 }
 
