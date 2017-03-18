@@ -18,7 +18,8 @@ namespace SocketLib
 {
 
 static const unsigned int MaxNumberBlocksPerReadWrite = 10;
-static const unsigned int MaxInMsgs = 100;
+static const unsigned int MaxNumberMessagesInBuffer = 100;
+static const unsigned int MaxNumberBytesInBuffer = 200 * 1024 * 1024;  // 200 MiB
 
 TCPSocket::TCPSocket() 
   : SocketBase(SOCK_STREAM) 
@@ -56,11 +57,19 @@ TCPSocket::handleSelectReadable()
     return checkNonBlockConnect_();
   }
 
+  // don't read if already many messages
   if (auto i = MessageBuffer::Singleton().getNumBufferedMessages(socketID_)) {
-    if (i >= MaxInMsgs) {
-      logger << "socket=" << socketID_ << " too many messages " << i << ":" << MaxInMsgs << ". stop read." << endlog;
+    if (i >= MaxNumberMessagesInBuffer) {
+      logger << "socket=" << socketID_ << " too many messages " << i << ":" << MaxNumberMessagesInBuffer << ". stop reading." << endlog;
       return 0;
     }
+  }
+
+  // don't read if has too much bytes in buffer
+  if (   recvBuffer_.getTotalDataSize() > MaxNumberBytesInBuffer 
+      && MessageBuffer::Singleton().getNumBufferedMessages(socketID_) > 0) {
+    logger << "socket=" << socketID_ << " too many buffered data. stop reading." << endlog;
+    return 0;
   }
 
   unsigned int totalNumBytesRead = 0;
@@ -105,11 +114,12 @@ TCPSocket::handleSelectWritable()
   while (   sendBuffer_.getTotalDataSize() > 0 
          || MessageBuffer::Singleton().hasMessageToSend(socketID_)) {
     if (sendBuffer_.getTotalDataSize() == 0) {
-      shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popMessageToSend(socketID_);
+      shared_ptr<MessageBase> pMsg = MessageBuffer::Singleton().popOutMessage(socketID_);
       if (MessageBase::toBytes(sendBuffer_, *pMsg) <= 0) {
         logger << "socket=" << socketID_ << " failed to write message to buffer. " << pMsg->getName() << " ignored." << endlog; 
         return 0;
       }
+      logger << logger.test << "socket=" << socketID_ << " sending message " << pMsg->getName() << endlog;
     }
 
     if (   sendBuffer_.getContinuousDataSize() > 0 
