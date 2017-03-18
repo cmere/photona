@@ -41,7 +41,7 @@ MessageCenter::handleSelectReadable()
   if (::read(fd(), &c, 1) != 1) {
     logger << "MessageCenter failed to read from pipe." << endlog;
   }
-  auto pMsg = MessageBuffer::Singleton().popInMessage();
+  auto pMsg = MessageBuffer::Singleton().popFirstMessageInQueue();
   if (!pMsg) {
     logger << "MessageCenter failed to pop message from MessageBuffer." << endlog;
     return 0;

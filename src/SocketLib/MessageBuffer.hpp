@@ -32,32 +32,29 @@ class MessageBuffer
 
     bool queueMessageToSend(const std::shared_ptr<MessageBase>&, const SocketID&);
 
-    std::shared_ptr<MessageBase> popInMessage(const SocketID&);
-    std::shared_ptr<MessageBase> popOutMessage(const SocketID&);
+    std::shared_ptr<MessageBase> popFirstMessageInQueue();
+    std::shared_ptr<MessageBase> popMessageToSend(const SocketID&);
 
     //unsigned int removeSocketMessages(const SocketID&);
 
-    int getReadFD() const { return fdRead_; }
+    int getInMessagePipeReadFD() const { return fdInMsgPipeRead_; }
 
   private:
     MessageBuffer();
     MessageBuffer(const MessageBuffer&) = delete;
     MessageBuffer& operator=(const MessageBuffer&) = delete;
 
-    using MessageQueue = std::list<std::shared_ptr<MessageBase>>;
-    using MsgBySocketID = std::map<SocketID, std::list<MessageQueue::iterator>>;
-
-    std::shared_ptr<MessageBase> popMessage_(const SocketID&, MsgBySocketID&);
-
   private:
+    using MessageQueue = std::list<std::shared_ptr<MessageBase>>;
     MessageQueue queueIn_;
     MessageQueue queueOut_;
 
+    using MsgBySocketID = std::map<SocketID, std::list<MessageQueue::iterator>>;
     MsgBySocketID inMsgBySocketID_;
     MsgBySocketID outMsgBySocketID_;
 
-    int fdRead_;
-    int fdWrite_;
+    int fdInMsgPipeRead_ = -1;
+    int fdInMsgPipeWrite_ = -1;
 };
 
 }

@@ -16,7 +16,7 @@ namespace SocketLib
 
 std::string SocketBase::ANY_IPADDRESS = "*";
 unsigned int SocketBase::RANDOM_PORT = 0;
-SocketID SocketBase::staticSocketID_ = 0;
+SocketID SocketBase::staticSocketID_ = SocketIDMin;
 
 SocketBase::SocketBase(int socketType)
   : socketID_(staticSocketID_++)

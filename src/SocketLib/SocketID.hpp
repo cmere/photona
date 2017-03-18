@@ -4,6 +4,9 @@
 namespace SocketLib 
 { 
   using SocketID = unsigned int;
+
+  extern SocketID MessageCenterPipeID;
+  extern SocketID SocketIDMin;
 }
 
 #endif

@@ -63,10 +63,8 @@ setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
       if (!isWriteSelectable) { // readSelectable
         FD_SET(pSelectable->fd(), &fdset);
       }
-      else if (auto* pSocket = dynamic_cast<TCPSocket*>(pSelectable.get())) {
-        if (pSocket->hasBytesToSend()) {
-          FD_SET(pSocket->fd(), &fdset);
-        }
+      else if (pSelectable->hasBytesToSend()) {
+        FD_SET(pSelectable->fd(), &fdset);
       }
       maxfd = max(maxfd, pSelectable->fd());
     }

@@ -2,6 +2,8 @@
 #include "FDSelector.hpp"
 #include "SocketServer.hpp"
 #include "ListenerTCPSocket.hpp"
+#include "MessageBuffer.hpp"
+#include "MessageCenter.hpp"
 #include "TCPSocket.hpp"
 #include "UDPSocket.hpp"
 
@@ -41,6 +43,7 @@ SocketServer::run(const string& ipaddress, unsigned int port)
   selector.addToWriteSelectable(pTCPServerSocket_);
   selector.addToReadSelectable(pUDPServerSocket_);
   selector.addToWriteSelectable(pUDPServerSocket_);
+  selector.addToReadSelectable(MessageCenter::SharedPtr());
   
   while (1) {
     if (!pTCPServerSocket_->isValid()) {

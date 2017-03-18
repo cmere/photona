@@ -21,6 +21,7 @@ class UDPSocket : public SocketBase
 
     virtual int handleSelectReadable();
     virtual int handleSelectWritable();
+    virtual bool hasBytesToSend() const { return false; }
 
   private:
     UDPSocket(const UDPSocket&) = delete;

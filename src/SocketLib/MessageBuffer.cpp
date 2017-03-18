@@ -18,14 +18,13 @@ MessageBuffer::Singleton()
 }
 
 MessageBuffer::MessageBuffer()
-  : fdRead_(-1), fdWrite_(-1)
 {
   int pipefd[2];
   if (::pipe(pipefd) == -1) {
     logger << logger.fatal << "MessageBuffer failed to open pipe: " << strerror(errno) << endlog;
   }
-  fdRead_ = pipefd[0];
-  fdWrite_ = pipefd[1];
+  fdInMsgPipeRead_ = pipefd[0];
+  fdInMsgPipeWrite_ = pipefd[1];
 }
 
 bool
@@ -46,11 +45,20 @@ MessageBuffer::queueMessageToSend(const std::shared_ptr<MessageBase>& pMsg, cons
 }
 
 shared_ptr<MessageBase> 
-MessageBuffer::popMessage_(const SocketID& socketID, MsgBySocketID& msgBySocketID)
+MessageBuffer::popFirstMessageInQueue()
+{
+  auto pMsg = queueIn_.front();
+  queueIn_.pop_front();
+  // TODO:
+  return pMsg;
+}
+
+shared_ptr<MessageBase> 
+MessageBuffer::popMessageToSend(const SocketID& socketID)
 {
   shared_ptr<MessageBase> pMsg;
-  auto found = msgBySocketID.find(socketID);
-  if (found != msgBySocketID.end()) {
+  auto found = outMsgBySocketID_.find(socketID);
+  if (found != outMsgBySocketID_.end()) {
     auto& itorList = found->second;
     if (!itorList.empty()) {
       auto itor = *itorList.begin();
@@ -58,23 +66,11 @@ MessageBuffer::popMessage_(const SocketID& socketID, MsgBySocketID& msgBySocketI
       queueOut_.erase(itor);
       itorList.erase(itorList.begin());
       if (itorList.empty()) {
-        msgBySocketID.erase(found);
+        outMsgBySocketID_.erase(found);
       }
     }
   }
   return pMsg;
-}
-
-shared_ptr<MessageBase> 
-MessageBuffer::popInMessage(const SocketID& socketID)
-{
-  return popMessage_(socketID, inMsgBySocketID_);
-}
-
-shared_ptr<MessageBase> 
-MessageBuffer::popOutMessage(const SocketID& socketID)
-{
-  return popMessage_(socketID, outMsgBySocketID_);
 }
 
 unsigned int
@@ -91,6 +87,15 @@ MessageBuffer::extractMessageFromSocket(BlockBuffer& blockBuffer, const SocketID
   queueIn_.push_back(pMsg);
   inMsgBySocketID_[socketID].push_back(--queueIn_.end());
   logger << logger.test << "socket=" << socketID << " extracted " << pMsg->getName() << " (" << numBytesExtracted << " bytes)" << endlog;
+  
+  // through pipe, notify another end that there is an incoming message.
+  char c = '1';
+  if (::write(fdInMsgPipeWrite_, &c, sizeof(c)) == -1) {
+    logger << "socketID=" << socketID << " faild to notify pipe, delete message in buffer " << pMsg->getName() << endlog;
+    queueIn_.pop_back();
+    inMsgBySocketID_[socketID].pop_back();
+  }
+
   return numBytesExtracted;
 }
 

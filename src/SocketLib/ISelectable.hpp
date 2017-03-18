@@ -15,6 +15,7 @@ class ISelectable
     virtual int handleSelectReadable() = 0;
     virtual int handleSelectWritable() = 0;
     virtual const SocketID& getSocketID() const = 0;
+    virtual bool hasBytesToSend() const = 0;
 };
 
 }
