@@ -1,0 +1,26 @@
+13:41:02.737 [TEST] TCP socket=1 listening *:10010
+13:41:02.737 [TEST] UDP socket=2 bind to *:10010
+13:41:02.737 [TEST] accept client socket=3 127.0.0.1:43565
+13:41:02.737 [TEST] socket=3 extracted MessageEcho (25 bytes)
+13:41:02.737 [TEST] ServerMessageCenter socketID=3 received MessageEcho
+13:41:02.737 [TEST] send back
+13:41:02.737 [TEST] socket=3 queue message MessageEcho
+13:41:02.737 [TEST] socket=3 sending message MessageEcho
+13:41:02.737 [TEST] socket=3 read EOF
+13:41:02.737 [TEST] selector remove socket=3 because EOF or read error.
+13:41:02.738 [TEST] accept client socket=4 127.0.0.1:43566
+13:41:02.738 [TEST] accept client socket=5 127.0.0.1:43567
+13:41:02.803 [TEST] socket=4 extracted MessageEcho (25 bytes)
+13:41:02.803 [TEST] ServerMessageCenter socketID=4 received MessageEcho
+13:41:02.803 [TEST] send back
+13:41:02.803 [TEST] socket=4 queue message MessageEcho
+13:41:02.803 [TEST] socket=4 sending message MessageEcho
+13:41:02.874 [TEST] socket=4 read EOF
+13:41:02.874 [TEST] selector remove socket=4 because EOF or read error.
+13:41:02.953 [TEST] socket=5 extracted MessageTest (104857626 bytes)
+13:41:02.953 [TEST] ServerMessageCenter socketID=5 received MessageTest
+13:41:02.953 [TEST] send back
+13:41:02.953 [TEST] socket=5 queue message MessageTest
+13:41:03.020 [TEST] socket=5 sending message MessageTest
+13:41:03.082 [TEST] socket=5 read EOF
+13:41:03.082 [TEST] selector remove socket=5 because EOF or read error.

@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  Logger::openLog("log.server");
+  Logger::openLog("log.photona.server");
 
   unsigned int port = 0;
   istringstream iss(argv[1]);

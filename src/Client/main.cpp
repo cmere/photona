@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  logger.openLog("log.client");
+  logger.openLog("log.photona.client");
 
   string serverIPAddress = argv[1];
   unsigned int serverPort = stoi(argv[2]);
@@ -38,7 +38,27 @@ int main(int argc, char *argv[])
 
   // create N socket, send one MessageEcho on each socket.
   {
-    constexpr unsigned int N = 5;
+    constexpr unsigned int N = 1;
+    shared_ptr<TCPSocket> pSockets[N];
+    for (unsigned int i = 0; i < N; ++i) {
+      pSockets[i].reset(new TCPSocket());
+      if (!pSockets[i]->connectTo(serverIPAddress, serverPort)) {
+        logger << " socket connect failed: " << strerror(errno) << endlog;
+        return EXIT_FAILURE;
+      }
+      //logger << logger.test << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endlog;
+      auto pMsg = make_shared<MessageEcho>();
+      pMsg->setContent("hello " + to_string(i));
+      MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getSocketID());
+      socketClient.addTCPSocket(pSockets[i]);
+    }
+  }
+
+  int exitCode = socketClient.run() ? EXIT_SUCCESS : EXIT_FAILURE;
+
+  // create N socket, send one MessageEcho on each socket.
+  {
+    constexpr unsigned int N = 1;
     shared_ptr<TCPSocket> pSockets[N];
     for (unsigned int i = 0; i < N; ++i) {
       pSockets[i].reset(new TCPSocket());
@@ -88,10 +108,8 @@ int main(int argc, char *argv[])
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
   }
 
-  int exitCode = EXIT_SUCCESS;
-  if (!socketClient.run()) {
-     exitCode = EXIT_FAILURE;
-  }
+  exitCode = socketClient.run() ? EXIT_SUCCESS : EXIT_FAILURE;
+
   logger << logger.test << "exit " << exitCode << endlog;
   logger.closeLog();
 

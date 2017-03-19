@@ -1,0 +1,19 @@
+13:41:02.737 [TEST] socket=1 queue message MessageEcho
+13:41:02.737 [TEST] socket=1 sending message MessageEcho
+13:41:02.737 [TEST] socket=1 extracted MessageEcho (25 bytes)
+13:41:02.737 [TEST] ClientMessageCenter socketID=1 received MessageEcho
+13:41:02.737 [TEST] content=[hello 0]
+13:41:02.737 [TEST] selector remove finished socket=1
+13:41:02.737 [TEST] socket=2 queue message MessageEcho
+13:41:02.803 [TEST] socket=3 queue message MessageTest
+13:41:02.803 [TEST] socket=2 sending message MessageEcho
+13:41:02.869 [TEST] socket=3 sending message MessageTest
+13:41:02.873 [TEST] socket=2 extracted MessageEcho (25 bytes)
+13:41:02.873 [TEST] ClientMessageCenter socketID=2 received MessageEcho
+13:41:02.873 [TEST] content=[hello 0]
+13:41:02.873 [TEST] selector remove finished socket=2
+13:41:03.079 [TEST] socket=3 extracted MessageTest (104857626 bytes)
+13:41:03.079 [TEST] ClientMessageCenter socketID=3 received MessageTest
+13:41:03.079 [TEST] length=[104857600]
+13:41:03.085 [TEST] selector remove finished socket=3
+13:41:03.085 [TEST] exit 0

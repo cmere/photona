@@ -42,8 +42,8 @@ def compare(logFilename, TESTFilename):
     return True
 
 # start
-os.remove("/var/log/photona/log.client");
-os.remove("/var/log/photona/log.server");
+os.remove("/var/log/photona/log.photona.client");
+os.remove("/var/log/photona/log.photona.server");
 
 # run programs
 procServer = subprocess.Popen(["../bin/photona.server", "10010"])
@@ -53,5 +53,5 @@ procClient.wait()
 procServer.terminate()
 
 # compare
-compare("/var/log/photona/log.client", "test.log.client.TEST")
-compare("/var/log/photona/log.server", "test.log.server.TEST")
+compare("/var/log/photona/log.photona.client", "test.log.photona.client.TEST")
+compare("/var/log/photona/log.photona.server", "test.log.photona.server.TEST")
