@@ -1,0 +1,50 @@
+01:30:15.957 [TEST] TCP socket=1 listening *:10010
+01:30:15.957 [TEST] UDP socket=2 bind to *:10010
+01:30:15.958 [TEST] accept client socket=3 127.0.0.1:32943
+01:30:15.958 [TEST] accept client socket=4 127.0.0.1:32944
+01:30:15.958 [TEST] accept client socket=5 127.0.0.1:32945
+01:30:15.958 [TEST] accept client socket=6 127.0.0.1:32946
+01:30:15.959 [TEST] accept client socket=7 127.0.0.1:32947
+01:30:15.959 [TEST] accept client socket=8 127.0.0.1:32948
+01:30:16.027 [TEST] socket=3 extracted MessageEcho (25 bytes)
+01:30:16.027 [TEST] ServerMessageCenter socketID=3 received MessageEcho
+01:30:16.027 [TEST] send back
+01:30:16.027 [TEST] socket=3 queue message MessageEcho
+01:30:16.027 [TEST] socket=4 extracted MessageEcho (25 bytes)
+01:30:16.027 [TEST] socket=5 extracted MessageEcho (25 bytes)
+01:30:16.027 [TEST] socket=3 sending message MessageEcho
+01:30:16.027 [TEST] ServerMessageCenter socketID=4 received MessageEcho
+01:30:16.027 [TEST] send back
+01:30:16.027 [TEST] socket=4 queue message MessageEcho
+01:30:16.027 [TEST] socket=6 extracted MessageEcho (25 bytes)
+01:30:16.027 [TEST] socket=7 extracted MessageEcho (25 bytes)
+01:30:16.027 [TEST] socket=4 sending message MessageEcho
+01:30:16.027 [TEST] ServerMessageCenter socketID=5 received MessageEcho
+01:30:16.027 [TEST] send back
+01:30:16.027 [TEST] socket=5 queue message MessageEcho
+01:30:16.027 [TEST] socket=5 sending message MessageEcho
+01:30:16.027 [TEST] ServerMessageCenter socketID=6 received MessageEcho
+01:30:16.027 [TEST] send back
+01:30:16.027 [TEST] socket=6 queue message MessageEcho
+01:30:16.027 [TEST] socket=6 sending message MessageEcho
+01:30:16.027 [TEST] ServerMessageCenter socketID=7 received MessageEcho
+01:30:16.027 [TEST] send back
+01:30:16.027 [TEST] socket=7 queue message MessageEcho
+01:30:16.027 [TEST] socket=7 sending message MessageEcho
+01:30:16.095 [TEST] socket=3 read EOF
+01:30:16.095 [TEST] selector remove socket=3 because EOF or read error.
+01:30:16.095 [TEST] socket=4 read EOF
+01:30:16.095 [TEST] selector remove socket=4 because EOF or read error.
+01:30:16.095 [TEST] socket=5 read EOF
+01:30:16.095 [TEST] selector remove socket=5 because EOF or read error.
+01:30:16.095 [TEST] socket=6 read EOF
+01:30:16.095 [TEST] selector remove socket=6 because EOF or read error.
+01:30:16.100 [TEST] socket=7 read EOF
+01:30:16.100 [TEST] selector remove socket=7 because EOF or read error.
+01:30:16.168 [TEST] socket=8 extracted MessageTest (104857626 bytes)
+01:30:16.168 [TEST] ServerMessageCenter socketID=8 received MessageTest
+01:30:16.168 [TEST] send back
+01:30:16.168 [TEST] socket=8 queue message MessageTest
+01:30:16.231 [TEST] socket=8 sending message MessageTest
+01:30:16.312 [TEST] socket=8 read EOF
+01:30:16.312 [TEST] selector remove socket=8 because EOF or read error.
