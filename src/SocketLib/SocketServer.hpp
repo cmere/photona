@@ -1,5 +1,5 @@
-#ifndef SOCKETLIB_SOCKETLIB_H
-#define SOCKETLIB_SOCKETLIB_H
+#ifndef SOCKETLIB_SOCKETSERVER_H
+#define SOCKETLIB_SOCKETSERVER_H
 
 #include <set>
 #include <memory>
@@ -35,4 +35,4 @@ class SocketServer
 
 }
 
-#endif // SOCKETLIB_LISTENSOCKETLIB_H
+#endif // SOCKETLIB_SOCKETSERVER_H

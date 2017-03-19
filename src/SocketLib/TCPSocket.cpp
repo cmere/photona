@@ -77,10 +77,8 @@ TCPSocket::handleSelectReadable()
     int numBytesRead = ::read(fd_, recvBuffer_.getSpacePtr(), recvBuffer_.getContinuousSpaceSize());
     logger << logger.debug << "read bytes " << numBytesRead << endlog;
     if (numBytesRead == 0) {
-      if (errno != EWOULDBLOCK) {
-        logger << logger.test << "socket=" << socketID_ << " read EOF" << endlog;
-        close();
-      }
+      logger << logger.test << "socket=" << socketID_ << " read EOF" << endlog;
+      close();
       break;
     }
     else if (numBytesRead < 0) {

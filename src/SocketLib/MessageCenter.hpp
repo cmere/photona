@@ -2,8 +2,10 @@
 #define SOCKETLIB_MESSAGECENTER_HPP
 
 #include <memory>
+#include <set>
 #include "ISelectable.hpp"
 #include "MessageBuffer.hpp"
+#include "SocketID.hpp"
 
 namespace SocketLib
 {
@@ -17,6 +19,7 @@ class MessageCenter : public ISelectable
     static std::shared_ptr<MessageCenter> GetSharedPtr();
     static void SetSharedPtr(std::shared_ptr<MessageCenter>);
 
+    // from ISelectable
     virtual int fd() const;
     virtual void close() { }
     virtual bool isValid() const { return true; }
@@ -25,7 +28,11 @@ class MessageCenter : public ISelectable
     virtual int handleSelectWritable() { return 0; }
 
     virtual const SocketID& getSocketID() const { return MessageCenterPipeID; };
-    virtual bool hasBytesToSend() const { return false; } 
+    virtual bool hasBytesToSend() const { return false; }
+
+    // MessageCenter virtual functions
+    virtual std::set<SocketID> getFinishedSocketIDs() { return std::set<SocketID>(); }
+    virtual void clearFinishedSocketIDs() { }
 
   protected:
     MessageCenter();

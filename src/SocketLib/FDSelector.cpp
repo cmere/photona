@@ -19,9 +19,9 @@ FDSelector::addToReadSelectable(std::shared_ptr<ISelectable> pSocket)
   if (!pSocket || !pSocket->isValid()) {
     return;
   }
-  auto& found = readSelectableByFD_[pSocket->fd()];
+  auto& found = readSelectables_[pSocket->getSocketID()];
   if (found) {
-    logger << "add duplicate to read fd_set " << pSocket->fd() << endlog;
+    logger << "ignore adding duplicate socket to read fd_set " << pSocket->getSocketID() << endlog;
   }
   else {
     found = pSocket;
@@ -34,9 +34,9 @@ FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket)
   if (!pSocket || !pSocket->isValid()) {
     return;
   }
-  auto& found = writeSelectableByFD_[pSocket->fd()];
+  auto& found = writeSelectables_[pSocket->getSocketID()];
   if (found) {
-    logger << "add duplicate to write fd_set " << pSocket->fd() << endlog;
+    logger << "ignore adding duplicate to write fd_set " << pSocket->getSocketID() << endlog;
   }
   else {
     found = pSocket;
@@ -46,18 +46,18 @@ FDSelector::addToWriteSelectable(std::shared_ptr<ISelectable> pSocket)
 void 
 FDSelector::removeFromAll(std::shared_ptr<ISelectable> pSocket) 
 {
-  readSelectableByFD_.erase(pSocket->fd());
-  writeSelectableByFD_.erase(pSocket->fd());
+  readSelectables_.erase(pSocket->getSocketID());
+  writeSelectables_.erase(pSocket->getSocketID());
 }
 
 int
-setupFDSet(const map<int, shared_ptr<ISelectable>>& pSelectableByFD,
+setupFDSet(const map<SocketID, shared_ptr<ISelectable>>& pSelectables,
            fd_set& fdset, bool isWriteSelectable)
 {
   FD_ZERO(&fdset);
   int maxfd = 0;
 
-  for (auto& elm : pSelectableByFD) {
+  for (auto& elm : pSelectables) {
     auto& pSelectable = elm.second;
     if (pSelectable && pSelectable->isValid()) {
       if (!isWriteSelectable) { // readSelectable
@@ -78,15 +78,18 @@ FDSelector::select(timeval* timeout)
 {
   fd_set readFDSet;
   fd_set writeFDSet;
-  int maxfdRead = setupFDSet(readSelectableByFD_, readFDSet, false);
-  int maxfdWrite = setupFDSet(writeSelectableByFD_, writeFDSet, true);
+  int maxfdRead = setupFDSet(readSelectables_, readFDSet, false);
+  int maxfdWrite = setupFDSet(writeSelectables_, writeFDSet, true);
   int maxfd = max(maxfdRead, maxfdWrite);
   if (maxfd == 0) {
     logger << "no more socket to select/pull." << endlog;
     return 0;
   }
 
-  int numSelectedFDs = 0;
+  readyToReadSockets_.clear();
+  readyToWriteSockets_.clear();
+
+  int numSelected = 0;
   while (1) {  // go back when received signal
     // block wait
     int retval = ::select(maxfd + 1, &readFDSet, &writeFDSet, nullptr, timeout);
@@ -100,71 +103,40 @@ FDSelector::select(timeval* timeout)
         return -1;
       }
     }
-    numSelectedFDs = retval;
+    numSelected = retval;
     break;
   }
 
-  readyToReadFDs_.clear();
-  readyToWriteFDs_.clear();
-
-  if (numSelectedFDs <= 0) {
+  if (numSelected <= 0) {
     logger << "socket nothing selected/polled." << endlog;
   }
 
   int numSelectedReadSocket = 0;
   // ready to read
-  for (auto& elm : readSelectableByFD_) {
-    int fd = elm.first;
+  for (auto& elm : readSelectables_) {
+    int fd = elm.second->fd();
     if (FD_ISSET(fd, &readFDSet)) {
-      readyToReadFDs_.insert(fd);
+      readyToReadSockets_.insert(elm.second);
       ++numSelectedReadSocket;
     }
   }
   
   int numSelectedWriteSocket = 0;
   // ready to write
-  for (auto& elm : writeSelectableByFD_) {
-    int fd = elm.first;
+  for (auto& elm : writeSelectables_) {
+    int fd = elm.second->fd();
     if (FD_ISSET(fd, &writeFDSet)) {
-      readyToWriteFDs_.insert(fd);
+      readyToWriteSockets_.insert(elm.second);
       ++numSelectedWriteSocket;
     }
   }
 
-  if (numSelectedFDs != numSelectedReadSocket + numSelectedWriteSocket) {
-    logger << "select/poll FD number not match " << numSelectedFDs << " ?=? " << numSelectedReadSocket << " + " << numSelectedWriteSocket << endlog;
+  if (numSelected != numSelectedReadSocket + numSelectedWriteSocket) {
+    logger << "select/poll FD number not match " << numSelected << " ?=? " << numSelectedReadSocket << " + " << numSelectedWriteSocket << endlog;
   }
 
-  return numSelectedFDs;
+  return numSelected;
 }
-
-set<shared_ptr<ISelectable>> 
-FDSelector::getReadyToRead() const
-{
-  set<shared_ptr<ISelectable>> retval;
-  for (auto fd: readyToReadFDs_) {
-    auto found = readSelectableByFD_.find(fd);
-    if (found != readSelectableByFD_.end() && found->second) {
-      retval.insert(found->second);
-    }
-  }
-  return retval;
-}
-
-
-set<shared_ptr<ISelectable>> 
-FDSelector::getReadyToWrite() const
-{
-  set<shared_ptr<ISelectable>> retval;
-  for (auto fd: readyToWriteFDs_) {
-    auto found = writeSelectableByFD_.find(fd);
-    if (found != writeSelectableByFD_.end() && found->second) {
-      retval.insert(found->second);
-    }
-  }
-  return retval;
-}
-
 
 //void addToExceptSelectable(shared_ptr<ISelectable> sock) { }
 //std::set<shared_ptr<ISelectable>> getReadyToExcept() const;

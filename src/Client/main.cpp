@@ -10,9 +10,12 @@
 #include "SocketLib/MessageBuffer.hpp"
 #include "SocketLib/MessageEcho.hpp"
 #include "SocketLib/MessageTest.hpp"
+#include "SocketLib/SocketClient.hpp"
 #include "SocketLib/TCPSocket.hpp"
+#include "ClientMessageCenter.hpp"
 
 using namespace std;
+using namespace Client;
 using namespace SocketLib;
 using namespace Util;
 
@@ -30,7 +33,12 @@ int main(int argc, char *argv[])
 
   constexpr unsigned int N = 5;
   shared_ptr<TCPSocket> pSockets[N];
-  FDSelector selector;
+  //FDSelector selector;
+
+  shared_ptr<ClientMessageCenter> pClientMsgCenter = ClientMessageCenter::GetSharedPtr();
+  MessageCenter::SetSharedPtr(pClientMsgCenter);
+
+  SocketClient socketClient;
 
   /*
   // create N socket, send one MessageEcho on each socket.
@@ -56,8 +64,8 @@ int main(int argc, char *argv[])
       logger << " socket connect failed: " << strerror(errno) << endlog;
       return EXIT_FAILURE;
     }
-    selector.addToReadSelectable(pTestSocket);
-    selector.addToWriteSelectable(pTestSocket);
+
+    socketClient.addTCPSocket(pTestSocket);
 
     // send message with unknow type, server should ignore msg.
     auto pMsg = make_shared<MessageTest>();
@@ -83,6 +91,12 @@ int main(int argc, char *argv[])
     MessageBuffer::Singleton().queueMessageToSend(pMsg, pTestSocket->getSocketID());
   }
 
+  int exitCode = EXIT_SUCCESS;
+  if (!socketClient.run()) {
+     exitCode = EXIT_FAILURE;
+  }
+
+  /*
   //timeval timeout;
   //timeout.tv_sec = 1;
   //timeout.tv_usec = 0;
@@ -106,7 +120,8 @@ int main(int argc, char *argv[])
       pWriteSocket->handleSelectWritable();
     }
   }
+  */
 
   logger.closeLog();
-  return EXIT_SUCCESS;
+  return exitCode;
 }

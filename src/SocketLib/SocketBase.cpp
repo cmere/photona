@@ -23,21 +23,10 @@ SocketBase::SocketBase(int socketType)
 {
   fd_ = ::socket(AF_INET, socketType, 0);
   if (fd_ == -1) {
-    logger << "create socket=" << socketID_ << " failed [" << strerror(errno) << "]" << endlog;
+    logger << "create socketID=" << socketID_ << " failed [" << strerror(errno) << "]" << endlog;
     return;
   }
-  logger << "create socket=" << socketID_ << " fd=" << fd_ << endlog;
-
-  /*
-  int flag = ::fcntl(fd_, F_GETFD);
-  if (flag == -1) {
-    logger << "try to set socket NONBLOCK failed. fd=" << fd_ << " " << strerror(errno) << endlog;
-  }
-  flag |= O_NONBLOCK;
-  if (::fcntl(fd_, F_SETFD, flag) == -1) {
-    logger << "set socket NONBLOCK failed. fd=" << fd_ << " " << strerror(errno) << endlog;
-  }
-  */
+  logger << "create socketID=" << socketID_ << " fd=" << fd_ << endlog;
 }
 
 SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPort)
@@ -48,7 +37,7 @@ SocketBase::SocketBase(int fd, const string& peerIPAddress, unsigned int peerPor
 
 SocketBase::~SocketBase()
 {
-  logger << "dtor socket " << socketID_ << endlog;
+  logger << "dtor socketID=" << socketID_ << endlog;
   close();
 }
 
@@ -57,7 +46,7 @@ SocketBase::close()
 {
   if (fd_ > 0) {
     ::close(fd_);
-    logger << "close socket " << socketID_ << " fd=" << fd_ << endlog;
+    logger << "close socketID=" << socketID_ << " fd=" << fd_ << endlog;
     fd_ = -1;
   }
 }

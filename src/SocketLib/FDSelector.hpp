@@ -1,6 +1,7 @@
 #ifndef SOCKETLIB_FDSELECTOR_H
 #define SOCKETLIB_FDSELECTOR_H
 
+#include "SocketID.hpp"
 #include <map>
 #include <memory>
 #include <set>
@@ -23,19 +24,21 @@ class FDSelector
 
     int select(timeval* timeout = nullptr);
 
-    std::set<std::shared_ptr<ISelectable>> getReadyToRead() const;
-    std::set<std::shared_ptr<ISelectable>> getReadyToWrite() const;
+    std::set<std::shared_ptr<ISelectable>> getReadyToRead() const { return readyToReadSockets_; }
+    std::set<std::shared_ptr<ISelectable>> getReadyToWrite() const { return readyToWriteSockets_; }
     //std::set<shared_ptr<ISelectable>> getReadyToExcept() const;
+
+    unsigned int getNumberSelectables() const { return readSelectables_.size() + writeSelectables_.size(); }
 
   private:
     // 'select' on these file descriptors.
-    std::map<int, std::shared_ptr<ISelectable>> readSelectableByFD_;
-    std::map<int, std::shared_ptr<ISelectable>> writeSelectableByFD_;
+    std::map<SocketID, std::shared_ptr<ISelectable>> readSelectables_;
+    std::map<SocketID, std::shared_ptr<ISelectable>> writeSelectables_;
     //std::map<int, shared_ptr<ISelectable>> exceptSelectableByFD_;
 
     // after 'select' return, remaining file descriptors.
-    std::set<int> readyToReadFDs_;
-    std::set<int> readyToWriteFDs_;
+    std::set<std::shared_ptr<ISelectable>> readyToReadSockets_;
+    std::set<std::shared_ptr<ISelectable>> readyToWriteSockets_;
     //std::set<int> readyToExceptFDs_;
 };
 
