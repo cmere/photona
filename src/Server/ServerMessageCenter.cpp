@@ -35,8 +35,15 @@ ServerMessageCenter::handleSelectReadable()
     return 0;
   }
 
-  // sent back to client
-  MessageBuffer::Singleton().queueMessageToSend(pMsg, socketID);
+  logger << logger.test << "ServerMessageCenter socketID=" << socketID << " received " << pMsg->getName() << endlog;
+  if (   pMsg->getType() == MessageBase::TEcho 
+      || pMsg->getType() == MessageBase::TTest) {
+    logger << logger.test << "send back" << endlog;
+    MessageBuffer::Singleton().queueMessageToSend(pMsg, socketID);
+  }
+  else {
+    logger << logger.test << "message type not support " << pMsg->getType() << endlog;
+  }
 
   return 0;
 }

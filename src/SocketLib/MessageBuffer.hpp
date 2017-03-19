@@ -4,13 +4,13 @@
 #include <map>
 #include <memory>
 #include <list>
-#include "MessageBase.hpp"
 #include "SocketID.hpp"
 
 namespace SocketLib
 {
 
 class BlockBuffer;
+class MessageBase;
 
 /**
  * Input/output buffer queue for messages. All in/out socket share this one quque (FIFO).

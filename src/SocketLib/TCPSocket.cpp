@@ -1,5 +1,6 @@
 #include "include/first.hpp"
 #include "TCPSocket.hpp"
+#include "MessageBase.hpp"
 #include "MessageBuffer.hpp"
 
 #include <arpa/inet.h>

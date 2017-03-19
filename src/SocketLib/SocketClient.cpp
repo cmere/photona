@@ -47,7 +47,7 @@ SocketClient::run()
     const auto& readyToReadSockets = selector.getReadyToRead();
     for (const auto& elm : readyToReadSockets) {
       if (elm->handleSelectReadable() <= 0 && elm->fd() < 0) {
-        logger << logger.test << "selector remove socket=" << elm->getSocketID() << " because EOF or read error." << endlog;
+        logger << logger.test << "selector remove finished socket=" << elm->getSocketID() << endlog;
         selector.removeFromAll(elm);
         continue;
       }
@@ -59,7 +59,7 @@ SocketClient::run()
         selector.removeFromAll(found->second);  // remove before closing socket, after close fd=-1.
         found->second->close();
         pSockets_.erase(found);
-        logger << logger.test << "selector remove socket=" << socketID << " because it's done." << endlog;
+        logger << logger.test << "selector remove finished socket=" << socketID << endlog;
       }
     }
     MessageCenter::GetSharedPtr()->clearFinishedSocketIDs();

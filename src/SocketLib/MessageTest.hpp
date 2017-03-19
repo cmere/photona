@@ -12,6 +12,8 @@ class MessageTest : public MessageBase
     MessageTest() : MessageBase(MessageBase::TTest) { }
 
     virtual std::string getName() const { return "MessageTest"; }
+    const char* getData() const { return data_.get(); }
+    unsigned int getDataLength() const { return datalen_; }
 
     void setData(const char* data, unsigned int length);
     void setMessageType(int testType) { type_ = testType; }
@@ -23,6 +25,7 @@ class MessageTest : public MessageBase
 
   private:
     std::unique_ptr<char> data_;
+    unsigned int datalen_ = 0;
     bool isTestTruncatedData_ = false;
 };
 

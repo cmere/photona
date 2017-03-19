@@ -13,6 +13,7 @@ class MessageEcho : public MessageBase
 
     virtual std::string getName() const { return "MessageEcho"; }
 
+    const std::string& getContent() const { return content_; }
     void setContent(const std::string& content) { content_ = content; }
 
   protected:

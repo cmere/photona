@@ -4,6 +4,7 @@
 #include <memory>
 #include <set>
 #include "ISelectable.hpp"
+#include "MessageBase.hpp"
 #include "MessageBuffer.hpp"
 #include "SocketID.hpp"
 

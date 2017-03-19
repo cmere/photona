@@ -10,6 +10,7 @@ namespace SocketLib {
 void
 MessageTest::setData(const char* data, unsigned int length)
 {
+  datalen_ = length;
   data_.reset(new char[length]);
   memcpy(data_.get(), data, length);
 }
@@ -44,7 +45,8 @@ MessageTest::parse_(BlockBuffer& buffer, unsigned int& offset)
   if (datalen == 0) {
     return false;
   }
-  data_.reset(new char[datalen]);
+  datalen_ = datalen;
+  data_.reset(new char[datalen_]);
   if (!parseT_(buffer, data_.get()[0], "data", offset)) {
     return false;
   }

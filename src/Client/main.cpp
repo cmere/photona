@@ -31,31 +31,28 @@ int main(int argc, char *argv[])
   string serverIPAddress = argv[1];
   unsigned int serverPort = stoi(argv[2]);
 
-  constexpr unsigned int N = 5;
-  shared_ptr<TCPSocket> pSockets[N];
-  //FDSelector selector;
-
   shared_ptr<ClientMessageCenter> pClientMsgCenter = ClientMessageCenter::GetSharedPtr();
   MessageCenter::SetSharedPtr(pClientMsgCenter);
 
   SocketClient socketClient;
 
-  /*
   // create N socket, send one MessageEcho on each socket.
-  for (unsigned int i = 0; i < N; ++i) {
-    pSockets[i].reset(new TCPSocket());
-    if (!pSockets[i]->connectTo(serverIPAddress, serverPort)) {
-      logger << " socket connect failed: " << strerror(errno) << endlog;
-      return EXIT_FAILURE;
+  {
+    constexpr unsigned int N = 5;
+    shared_ptr<TCPSocket> pSockets[N];
+    for (unsigned int i = 0; i < N; ++i) {
+      pSockets[i].reset(new TCPSocket());
+      if (!pSockets[i]->connectTo(serverIPAddress, serverPort)) {
+        logger << " socket connect failed: " << strerror(errno) << endlog;
+        return EXIT_FAILURE;
+      }
+      //logger << logger.test << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endlog;
+      auto pMsg = make_shared<MessageEcho>();
+      pMsg->setContent("hello " + to_string(i));
+      MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getSocketID());
+      socketClient.addTCPSocket(pSockets[i]);
     }
-    logger << logger.test << "fd=" << pSockets[i]->fd() << " connected " << pSockets[i]->getLocalPair() << " ->  " <<  pSockets[i]->getPeerPair() << endlog;
-    auto pMsg = make_shared<MessageEcho>();
-    pMsg->setContent("hello " + to_string(i));
-    MessageBuffer::Singleton().queueMessageToSend(pMsg, pSockets[i]->getSocketID());
-    selector.addToReadSelectable(pSockets[i]);
-    selector.addToWriteSelectable(pSockets[i]);
   }
-  */
 
   // send MessageTest 
   {
@@ -95,33 +92,8 @@ int main(int argc, char *argv[])
   if (!socketClient.run()) {
      exitCode = EXIT_FAILURE;
   }
-
-  /*
-  //timeval timeout;
-  //timeout.tv_sec = 1;
-  //timeout.tv_usec = 0;
-
-  while (1) {
-    int sel = selector.select();
-    if (sel <= 0) {
-      logger << "select return 0, exit" << endlog;
-      break;
-    }
-
-    auto pReadSockets = selector.getReadyToRead();
-    auto pWriteSockets = selector.getReadyToWrite();
-
-    for (auto pReadSocket : pReadSockets) {
-      if (pReadSocket->handleSelectReadable() <= 0 && pReadSocket->fd() < 0) {  // eof or error
-        pWriteSockets.erase(pReadSocket);
-      }
-    }
-    for (auto pWriteSocket : pWriteSockets) {
-      pWriteSocket->handleSelectWritable();
-    }
-  }
-  */
-
+  logger << logger.test << "exit " << exitCode << endlog;
   logger.closeLog();
+
   return exitCode;
 }

@@ -21,8 +21,13 @@ class MessageBase
     static int fromBytes(BlockBuffer&, std::shared_ptr<MessageBase>&);
     static unsigned int toBytes(BlockBuffer&, const MessageBase&);
 
-    virtual ~MessageBase() { }
+    enum { 
+      TEcho = 1,
+      TTest, 
+    };
 
+    virtual ~MessageBase() { }
+    int getType() const { return type_; }
     virtual std::string getName() const { return "MessageBase"; }
 
   private:
@@ -34,11 +39,6 @@ class MessageBase
       };
 
   protected:
-    enum { 
-      TEcho = 1,
-      TTest, 
-    };
-
     MessageBase(int type) : type_(type)
     { }
 
@@ -84,6 +84,7 @@ class MessageBase
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // specialization 
+
 template<>
   bool MessageBase::parseT_<char>(BlockBuffer& buffer, char& t, const std::string& fieldName, unsigned int& offset);
 
@@ -107,6 +108,7 @@ template<>
     public:
       static std::string convert(std::string& str) { return str; }
   };
+
 // specialization
 ///////////////////////////////////////////////////////////////////////////////////////
 

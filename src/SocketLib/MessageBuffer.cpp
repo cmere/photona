@@ -1,6 +1,7 @@
 #include "include/first.hpp"
 #include "MessageBuffer.hpp"
 #include "BlockBuffer.hpp"
+#include "MessageBase.hpp"
 
 #include <unistd.h>
 

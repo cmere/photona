@@ -188,12 +188,12 @@ BlockBuffer::append(const char* data, unsigned int count, unsigned int offset)
 // BlockBuffer::Block
 BlockBuffer::Block::Block()
 {
-  logger << logger.debug << "ctor Block" << this << endlog;
+  logger << logger.debug << "ctor Block " << this << endlog;
 }
 
 BlockBuffer::Block::~Block()
 {
-  logger << logger.debug << "dtor Block" << this << endlog;
+  logger << logger.debug << "dtor Block " << this << endlog;
 }
 
 unsigned int
