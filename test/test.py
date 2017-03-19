@@ -11,17 +11,30 @@ def compare(logFilename, TESTFilename):
     fileLog = open(logFilename, 'r')
     fileLogTEST = open(TESTFilename, 'r')
     regex = re.compile("^\d\d:\d\d:\d\d.\d\d\d \[TEST\] (.*)")
-    lineLogTEST = fileLogTEST.readline()[21:]
     for line in fileLog:
         #e.g. "01:30:15.958 [TEST] socket=1 queue message MessageEcho"
-        m = regex.match(line);
-        if m and m.groups == 1:
-            if m.group(1) == lineLogTEST:
-                lineLogTEST = fileLogTEST.readline()[21:]
+        m = regex.match(line)
+        if m:
+            lineLogTEST = fileLogTEST.readline()[20:].rstrip('\n')
+            line = m.group(1)
+            # ignore port number in "accept client socket=3 127.0.0.1:43337"
+            if line.find('accept client socket=') == 0:
+                line = line[:line.find(':')]
+                lineLogTEST = lineLogTEST[:lineLogTEST.find(':')]
+            if line == lineLogTEST:
+                pass
             else:
-                print "Not match: \n" + line + lineLogTEST
+                print "Not match:"
+                print line 
+                print lineLogTEST
                 print "Fail: " + logFilename
                 return False
+
+    lineLogTEST = fileLogTEST.readline()  # TEST file should be EOF
+    if lineLogTEST != '':
+        print "Not match: more in TEST file: " + lineLogTEST.rstrip('\n')
+        print "Fail: " + logFilename
+        return False
 
     fileLog.close()
     fileLogTEST.close()
@@ -33,8 +46,8 @@ os.remove("/var/log/photona/log.client");
 os.remove("/var/log/photona/log.server");
 
 # run programs
-procServer = subprocess.Popen(["../bin/server", "10010"])
-procClient = subprocess.Popen(["../bin/client", "127.0.0.1", "10010"])
+procServer = subprocess.Popen(["../bin/photona.server", "10010"])
+procClient = subprocess.Popen(["../bin/photona.client", "127.0.0.1", "10010"])
 
 procClient.wait()
 procServer.terminate()

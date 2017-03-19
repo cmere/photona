@@ -20,9 +20,9 @@ file(GLOB UtilLib_Source "Util/*.cpp")
 add_library(util STATIC ${UtilLib_Source})
 
 file(GLOB ServerApp_Source "Server/*.cpp")
-add_executable (server ${ServerApp_Source})
-target_link_libraries(server socketlib util ${LibBoostDateTime})
+add_executable (photona.server ${ServerApp_Source})
+target_link_libraries(photona.server socketlib util ${LibBoostDateTime})
 
 file(GLOB ClientApp_Source "Client/*.cpp")
-add_executable (client ${ClientApp_Source})
-target_link_libraries(client socketlib util ${LibBoostDateTime})
+add_executable (photona.client ${ClientApp_Source})
+target_link_libraries(photona.client socketlib util ${LibBoostDateTime})
